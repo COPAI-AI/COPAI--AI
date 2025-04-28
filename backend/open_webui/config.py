@@ -645,7 +645,7 @@ def load_oauth_providers():
 load_oauth_providers()
 
 ####################################
-# Static DIR
+## Static DIR
 ####################################
 
 STATIC_DIR = Path(os.getenv("STATIC_DIR", OPEN_WEBUI_DIR / "static")).resolve()

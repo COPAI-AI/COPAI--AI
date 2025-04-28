@@ -110,7 +110,8 @@ log.setLevel(SRC_LOG_LEVELS["CONFIG"])
 #     WEBUI_NAME += " (Open WebUI)"
 
 WEBUI_NAME = "COPAI AI"
-WEBUI_FAVICON_URL = "https://openwebui.com/favicon.png"
+# WEBUI_FAVICON_URL = "https://openwebui.com/favicon.png"
+WEBUI_FAVICON_URL = "https://openwebui.com/copai-logo.png"
 
 TRUSTED_SIGNATURE_KEY = os.environ.get("TRUSTED_SIGNATURE_KEY", "")
 
