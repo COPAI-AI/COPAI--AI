@@ -214,35 +214,35 @@
 />
 
 <form class="flex flex-col h-full justify-between text-sm" on:submit|preventDefault={submitHandler}>
-	<div class=" overflow-y-scroll scrollbar-hidden h-full">
+	<div class="overflow-y-scroll scrollbar-hidden h-full" style="padding-right: 4px;">
 		{#if ENABLE_OPENAI_API !== null && ENABLE_OLLAMA_API !== null && directConnectionsConfig !== null}
-			<div class="my-2">
+			<!-- OpenAI API Section -->
+			<div class="my-2 bg-gradient-to-b from-gray-50/50 to-transparent dark:from-gray-800/20 dark:to-transparent rounded-xl p-5 mb-5 border border-gray-200/60 dark:border-gray-700/30">
 				<div class="mt-2 space-y-2 pr-1.5">
-					<div class="flex justify-between items-center text-sm">
-						<div class="  font-medium">{$i18n.t('OpenAI API')}</div>
+					<div class="flex justify-between items-center text-sm mb-3">
+						<div class="flex items-center gap-2">
+							<div class="w-1 h-6 bg-orange-500 rounded-sm"></div>
+							<div class="font-semibold text-gray-900 dark:text-gray-100" style="letter-spacing: -0.01em;">{$i18n.t('OpenAI API')}</div>
+						</div>
 
 						<div class="flex items-center">
-							<div class="">
-								<Switch
-									bind:state={ENABLE_OPENAI_API}
-									on:change={async () => {
-										updateOpenAIHandler();
-									}}
-								/>
-							</div>
+							<Switch
+								bind:state={ENABLE_OPENAI_API}
+								on:change={async () => {
+									updateOpenAIHandler();
+								}}
+							/>
 						</div>
 					</div>
 
 					{#if ENABLE_OPENAI_API}
-						<hr class=" border-gray-100 dark:border-gray-850" />
-
-						<div class="">
-							<div class="flex justify-between items-center">
-								<div class="font-medium">{$i18n.t('Manage OpenAI API Connections')}</div>
+						<div class="bg-white dark:bg-gray-800/50 rounded-lg p-4 shadow-sm border border-gray-200/80 dark:border-gray-700/50 mt-3">
+							<div class="flex justify-between items-center mb-3">
+								<div class="font-semibold text-gray-800 dark:text-gray-200 text-sm">{$i18n.t('Manage OpenAI API Connections')}</div>
 
 								<Tooltip content={$i18n.t(`Add Connection`)}>
 									<button
-										class="px-1"
+										class="bg-orange-500 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg px-2.5 py-1.5 transition-all shadow-md shadow-orange-500/25 dark:shadow-orange-500/20 flex items-center justify-center"
 										on:click={() => {
 											showAddOpenAIConnectionModal = true;
 										}}
@@ -253,30 +253,32 @@
 								</Tooltip>
 							</div>
 
-							<div class="flex flex-col gap-1.5 mt-1.5">
+							<div class="flex flex-col gap-2.5 mt-1.5">
 								{#each OPENAI_API_BASE_URLS as url, idx}
-									<OpenAIConnection
-										pipeline={pipelineUrls[url] ? true : false}
-										bind:url
-										bind:key={OPENAI_API_KEYS[idx]}
-										bind:config={OPENAI_API_CONFIGS[idx]}
-										onSubmit={() => {
-											updateOpenAIHandler();
-										}}
-										onDelete={() => {
-											OPENAI_API_BASE_URLS = OPENAI_API_BASE_URLS.filter(
-												(url, urlIdx) => idx !== urlIdx
-											);
-											OPENAI_API_KEYS = OPENAI_API_KEYS.filter((key, keyIdx) => idx !== keyIdx);
+									<div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200/80 dark:border-gray-700/50 transition-all">
+										<OpenAIConnection
+											pipeline={pipelineUrls[url] ? true : false}
+											bind:url
+											bind:key={OPENAI_API_KEYS[idx]}
+											bind:config={OPENAI_API_CONFIGS[idx]}
+											onSubmit={() => {
+												updateOpenAIHandler();
+											}}
+											onDelete={() => {
+												OPENAI_API_BASE_URLS = OPENAI_API_BASE_URLS.filter(
+													(url, urlIdx) => idx !== urlIdx
+												);
+												OPENAI_API_KEYS = OPENAI_API_KEYS.filter((key, keyIdx) => idx !== keyIdx);
 
-											let newConfig = {};
-											OPENAI_API_BASE_URLS.forEach((url, newIdx) => {
-												newConfig[newIdx] = OPENAI_API_CONFIGS[newIdx < idx ? newIdx : newIdx + 1];
-											});
-											OPENAI_API_CONFIGS = newConfig;
-											updateOpenAIHandler();
-										}}
-									/>
+												let newConfig = {};
+												OPENAI_API_BASE_URLS.forEach((url, newIdx) => {
+													newConfig[newIdx] = OPENAI_API_CONFIGS[newIdx < idx ? newIdx : newIdx + 1];
+												});
+												OPENAI_API_CONFIGS = newConfig;
+												updateOpenAIHandler();
+											}}
+										/>
+									</div>
 								{/each}
 							</div>
 						</div>
@@ -284,11 +286,13 @@
 				</div>
 			</div>
 
-			<hr class=" border-gray-100 dark:border-gray-850" />
-
-			<div class="pr-1.5 my-2">
+			<!-- Ollama API Section -->
+			<div class="pr-1.5 my-2 bg-gradient-to-b from-gray-50/50 to-transparent dark:from-gray-800/20 dark:to-transparent rounded-xl p-5 mb-5 border border-gray-200/60 dark:border-gray-700/30">
 				<div class="flex justify-between items-center text-sm mb-2">
-					<div class="  font-medium">{$i18n.t('Ollama API')}</div>
+					<div class="flex items-center gap-2">
+						<div class="w-1 h-6 bg-orange-500 rounded-sm"></div>
+						<div class="font-semibold text-gray-900 dark:text-gray-100" style="letter-spacing: -0.01em;">{$i18n.t('Ollama API')}</div>
+					</div>
 
 					<div class="mt-1">
 						<Switch
@@ -301,15 +305,13 @@
 				</div>
 
 				{#if ENABLE_OLLAMA_API}
-					<hr class=" border-gray-100 dark:border-gray-850 my-2" />
-
-					<div class="">
-						<div class="flex justify-between items-center">
-							<div class="font-medium">{$i18n.t('Manage Ollama API Connections')}</div>
+					<div class="bg-white dark:bg-gray-800/50 rounded-lg p-4 shadow-sm border border-gray-200/80 dark:border-gray-700/50 mt-3">
+						<div class="flex justify-between items-center mb-3">
+							<div class="font-semibold text-gray-800 dark:text-gray-200 text-sm">{$i18n.t('Manage Ollama API Connections')}</div>
 
 							<Tooltip content={$i18n.t(`Add Connection`)}>
 								<button
-									class="px-1"
+									class="bg-orange-500 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg px-2.5 py-1.5 transition-all shadow-md shadow-orange-500/25 dark:shadow-orange-500/20 flex items-center justify-center"
 									on:click={() => {
 										showAddOllamaConnectionModal = true;
 									}}
@@ -321,33 +323,35 @@
 						</div>
 
 						<div class="flex w-full gap-1.5">
-							<div class="flex-1 flex flex-col gap-1.5 mt-1.5">
+							<div class="flex-1 flex flex-col gap-2.5 mt-1.5">
 								{#each OLLAMA_BASE_URLS as url, idx}
-									<OllamaConnection
-										bind:url
-										bind:config={OLLAMA_API_CONFIGS[idx]}
-										{idx}
-										onSubmit={() => {
-											updateOllamaHandler();
-										}}
-										onDelete={() => {
-											OLLAMA_BASE_URLS = OLLAMA_BASE_URLS.filter((url, urlIdx) => idx !== urlIdx);
+									<div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200/80 dark:border-gray-700/50 transition-all">
+										<OllamaConnection
+											bind:url
+											bind:config={OLLAMA_API_CONFIGS[idx]}
+											{idx}
+											onSubmit={() => {
+												updateOllamaHandler();
+											}}
+											onDelete={() => {
+												OLLAMA_BASE_URLS = OLLAMA_BASE_URLS.filter((url, urlIdx) => idx !== urlIdx);
 
-											let newConfig = {};
-											OLLAMA_BASE_URLS.forEach((url, newIdx) => {
-												newConfig[newIdx] = OLLAMA_API_CONFIGS[newIdx < idx ? newIdx : newIdx + 1];
-											});
-											OLLAMA_API_CONFIGS = newConfig;
-										}}
-									/>
+												let newConfig = {};
+												OLLAMA_BASE_URLS.forEach((url, newIdx) => {
+													newConfig[newIdx] = OLLAMA_API_CONFIGS[newIdx < idx ? newIdx : newIdx + 1];
+												});
+												OLLAMA_API_CONFIGS = newConfig;
+											}}
+										/>
+									</div>
 								{/each}
 							</div>
 						</div>
 
-						<div class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+						<div class="mt-3 pt-3 border-t border-gray-200/80 dark:border-gray-700/50 text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
 							{$i18n.t('Trouble accessing Ollama?')}
 							<a
-								class=" text-gray-300 font-medium underline"
+								class="text-blue-600 dark:text-blue-400 font-semibold underline hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
 								href="https://github.com/open-webui/open-webui#troubleshooting"
 								target="_blank"
 							>
@@ -358,26 +362,26 @@
 				{/if}
 			</div>
 
-			<hr class=" border-gray-100 dark:border-gray-850" />
-
-			<div class="pr-1.5 my-2">
+			<!-- Direct Connections Section -->
+			<div class="pr-1.5 my-2 bg-gradient-to-b from-gray-50/50 to-transparent dark:from-gray-800/20 dark:to-transparent rounded-xl p-5 border border-gray-200/60 dark:border-gray-700/30">
 				<div class="flex justify-between items-center text-sm">
-					<div class="  font-medium">{$i18n.t('Direct Connections')}</div>
+					<div class="flex items-center gap-2">
+						<div class="w-1 h-6 bg-gradient-to-b from-amber-500 to-red-500 rounded-sm"></div>
+						<div class="font-semibold text-gray-900 dark:text-gray-100" style="letter-spacing: -0.01em;">{$i18n.t('Direct Connections')}</div>
+					</div>
 
 					<div class="flex items-center">
-						<div class="">
-							<Switch
-								bind:state={directConnectionsConfig.ENABLE_DIRECT_CONNECTIONS}
-								on:change={async () => {
-									updateDirectConnectionsHandler();
-								}}
-							/>
-						</div>
+						<Switch
+							bind:state={directConnectionsConfig.ENABLE_DIRECT_CONNECTIONS}
+							on:change={async () => {
+								updateDirectConnectionsHandler();
+							}}
+						/>
 					</div>
 				</div>
 
-				<div class="mt-1.5">
-					<div class="text-xs text-gray-500">
+				<div class="mt-3 bg-white dark:bg-gray-800/50 rounded-lg p-4 shadow-sm border border-gray-200/80 dark:border-gray-700/50">
+					<div class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
 						{$i18n.t(
 							'Direct Connections allow users to connect to their own OpenAI compatible API endpoints.'
 						)}
@@ -386,16 +390,17 @@
 			</div>
 		{:else}
 			<div class="flex h-full justify-center">
-				<div class="my-auto">
+				<div class="my-auto flex flex-col items-center gap-3">
 					<Spinner className="size-6" />
+					<div class="text-gray-600 dark:text-gray-400 text-sm font-medium">Loading connections...</div>
 				</div>
 			</div>
 		{/if}
 	</div>
 
-	<div class="flex justify-end pt-3 text-sm font-medium">
+	<div class="flex justify-end pt-4 text-sm font-medium border-t border-gray-200 dark:border-gray-700/50 mt-2">
 		<button
-			class="px-3.5 py-1.5 text-sm font-medium bg-black hover:bg-gray-900 text-white dark:bg-white dark:text-black dark:hover:bg-gray-100 transition rounded-full"
+			class="px-3.5 py-1.5 text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white transition rounded-lg"
 			type="submit"
 		>
 			{$i18n.t('Save')}

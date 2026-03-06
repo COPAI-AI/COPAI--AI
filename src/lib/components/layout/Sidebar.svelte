@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { toast } from 'svelte-sonner';
+	// @ts-ignore
 	import { v4 as uuidv4 } from 'uuid';
+	// @ts-ignore
+	import type { Folder as FolderType } from '$lib/apis/folders';
 
 	import { goto } from '$app/navigation';
 	import {
@@ -24,7 +27,7 @@
 	} from '$lib/stores';
 	import { onMount, getContext, tick, onDestroy } from 'svelte';
 
-	const i18n = getContext('i18n');
+	const i18n = getContext('i18n') as any;
 
 	import {
 		deleteChatById,
@@ -45,6 +48,7 @@
 	import ArchivedChatsModal from './Sidebar/ArchivedChatsModal.svelte';
 	import UserMenu from './Sidebar/UserMenu.svelte';
 	import ChatItem from './Sidebar/ChatItem.svelte';
+	import CreateProjectModal from './Sidebar/CreateProjectModal.svelte';
 	import Spinner from '../common/Spinner.svelte';
 	import Loader from '../common/Loader.svelte';
 	import AddFilesPlaceholder from '../AddFilesPlaceholder.svelte';
@@ -58,26 +62,29 @@
 	import ChannelItem from './Sidebar/ChannelItem.svelte';
 	import PencilSquare from '../icons/PencilSquare.svelte';
 	import Home from '../icons/Home.svelte';
+	
 
 	const BREAKPOINT = 768;
 
-	let navElement;
+	let navElement: HTMLElement | undefined;
 	let search = '';
 
 	let shiftKey = false;
 
-	let selectedChatId = null;
+	let selectedChatId: string | null = null;
 	let showDropdown = false;
 	let showPinnedChat = true;
 
 	let showCreateChannel = false;
+	let showCreateProject = false;
+	
 
 	// Pagination variables
 	let chatListLoading = false;
 	let allChatsLoaded = false;
 
-	let folders = {};
-	let newFolderId = null;
+	let folders: Record<string, any> = {};
+	let newFolderId: string | null = null;
 
 	const initFolders = async () => {
 		const folderList = await getFolders(localStorage.token).catch((error) => {
@@ -112,25 +119,27 @@
 					: [folder.id];
 
 				// Sort the children by updated_at field
-				folders[folder.parent_id].childrenIds.sort((a, b) => {
+				folders[folder.parent_id].childrenIds.sort((a: string, b: string) => {
 					return folders[b].updated_at - folders[a].updated_at;
 				});
 			}
 		}
 	};
 
-	const createFolder = async (name = 'Untitled') => {
+	const createFolder = async (name = 'Untitled', category = '', description = '') => {
 		if (name === '') {
-			toast.error($i18n.t('Folder name cannot be empty.'));
+			toast.error(i18n.t(`Folder name cannot be empty.`));
 			return;
 		}
 
-		const rootFolders = Object.values(folders).filter((folder) => folder.parent_id === null);
-		if (rootFolders.find((folder) => folder.name.toLowerCase() === name.toLowerCase())) {
+		const rootFolders = Object.values(folders).filter((folder: any) => folder.parent_id === null);
+		if (rootFolders.find((folder: any) => folder.name.toLowerCase() === name.toLowerCase())) {
 			// If a folder with the same name already exists, append a number to the name
 			let i = 1;
 			while (
-				rootFolders.find((folder) => folder.name.toLowerCase() === `${name} ${i}`.toLowerCase())
+				rootFolders.find(
+					(folder: any) => folder.name.toLowerCase() === `${name} ${i}`.toLowerCase()
+				)
 			) {
 				i++;
 			}
@@ -145,6 +154,8 @@
 			tempId: {
 				id: tempId,
 				name: name,
+				category: category,
+				description: description,
 				created_at: Date.now(),
 				updated_at: Date.now()
 			}
@@ -159,6 +170,12 @@
 			newFolderId = res.id;
 			await initFolders();
 		}
+	};
+
+	const handleCreateProject = async (event: CustomEvent<{ name: string; category: string }>) => {
+		const { name, category } = event.detail;
+		await createFolder(name, category);
+		toast.success(`Project "${name}" created successfully!`);
 	};
 
 	const initChannels = async () => {
@@ -199,12 +216,12 @@
 
 		// once the bottom of the list has been reached (no results) there is no need to continue querying
 		allChatsLoaded = newChatList.length === 0;
-		await chats.set([...($chats ? $chats : []), ...newChatList]);
+		await chats.set([...($chats ?? []), ...newChatList] as any);
 
 		chatListLoading = false;
 	};
 
-	let searchDebounceTimeout;
+	let searchDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	const searchDebounceHandler = async () => {
 		console.log('search', search);
@@ -223,14 +240,18 @@
 				currentChatPage.set(1);
 				await chats.set(await getChatListBySearchText(localStorage.token, search));
 
-				if ($chats.length === 0) {
+				if ((($chats as any) ?? []).length === 0) {
 					tags.set(await getAllTags(localStorage.token));
 				}
 			}, 1000);
 		}
 	};
 
-	const importChatHandler = async (items, pinned = false, folderId = null) => {
+	const importChatHandler = async (
+		items: any[],
+		pinned = false,
+		folderId: string | null = null
+	) => {
 		console.log('importChatHandler', items, pinned, folderId);
 		for (const item of items) {
 			console.log(item);
@@ -242,19 +263,19 @@
 		initChatList();
 	};
 
-	const inputFilesHandler = async (files) => {
+	const inputFilesHandler = async (files: File[] | FileList) => {
 		console.log(files);
 
 		for (const file of files) {
 			const reader = new FileReader();
 			reader.onload = async (e) => {
-				const content = e.target.result;
+				const content = (e.target?.result as string) ?? '';
 
 				try {
 					const chatItems = JSON.parse(content);
 					importChatHandler(chatItems);
 				} catch {
-					toast.error($i18n.t(`Invalid file format.`));
+					toast.error(i18n.t(`Invalid file format.`));
 				}
 			};
 
@@ -262,7 +283,7 @@
 		}
 	};
 
-	const tagEventHandler = async (type, tagName, chatId) => {
+	const tagEventHandler = async (type: string, tagName: string, chatId: string) => {
 		console.log(type, tagName, chatId);
 		if (type === 'delete') {
 			initChatList();
@@ -273,7 +294,7 @@
 
 	let draggedOver = false;
 
-	const onDragOver = (e) => {
+	const onDragOver = (e: DragEvent) => {
 		e.preventDefault();
 
 		// Check if a file is being draggedOver.
@@ -288,7 +309,7 @@
 		draggedOver = false;
 	};
 
-	const onDrop = async (e) => {
+	const onDrop = async (e: DragEvent) => {
 		e.preventDefault();
 		console.log(e); // Log the drop event
 
@@ -305,10 +326,11 @@
 		draggedOver = false; // Reset draggedOver status after drop
 	};
 
-	let touchstart;
-	let touchend;
+	let touchstart: Touch | null = null;
+	let touchend: Touch | null = null;
 
 	function checkDirection() {
+		if (!touchstart || !touchend) return;
 		const screenWidth = window.innerWidth;
 		const swipeDistance = Math.abs(touchend.screenX - touchstart.screenX);
 		if (touchstart.clientX < 40 && swipeDistance >= screenWidth / 8) {
@@ -321,27 +343,64 @@
 		}
 	}
 
-	const onTouchStart = (e) => {
+	const onTouchStart = (e: TouchEvent) => {
 		touchstart = e.changedTouches[0];
-		console.log(touchstart.clientX);
+		console.log(touchstart?.clientX);
 	};
 
-	const onTouchEnd = (e) => {
+	const handleChannelSubmit = async (data: { name: string; access_control: any }) => {
+		const res = await createNewChannel(localStorage.token, {
+			name: data.name,
+			access_control: data.access_control
+		}).catch((error) => {
+			toast.error(`${error}`);
+			return null;
+		});
+
+		if (res) {
+			if ($socket) {
+				$socket.emit('join-channels', { auth: { token: (localStorage as any).token } });
+			}
+			await initChannels();
+			showCreateChannel = false;
+		}
+	};
+
+	const handleProjectSubmit = async (event: CustomEvent) => {
+		const { name, category, description } = event.detail;
+		await createFolder(name, category, description);
+		showCreateProject = false;
+	};
+
+	const onTouchEnd = (e: TouchEvent) => {
 		touchend = e.changedTouches[0];
 		checkDirection();
 	};
 
-	const onKeyDown = (e) => {
+	const onKeyDown = (e: KeyboardEvent) => {
 		if (e.key === 'Shift') {
 			shiftKey = true;
 		}
 	};
 
-	const onKeyUp = (e) => {
+	const onKeyUp = (e: KeyboardEvent) => {
 		if (e.key === 'Shift') {
 			shiftKey = false;
 		}
 	};
+
+	// Helper variables to avoid type assertion issues in templates
+	// $: hasWorkspaceAccess = $user?.role === 'admin' || ($user as any)?.permissions;
+	$: hasWorkspaceAccess = $user?.role === 'admin';
+	$: hasChannelsEnabled = ($config as any)?.features?.enable_channels;
+	$: chatList = ($chats as any) ?? [];
+	$: pinnedChatList = ($pinnedChats as any) ?? [];
+	$: renderChatList = chatList.map((c: any, idx: number) => ({
+		id: c?.id,
+		title: c?.title,
+		time_range: c?.time_range,
+		showTimeRange: idx === 0 || (idx > 0 && c?.time_range !== chatList[idx - 1]?.time_range)
+	}));
 
 	const onFocus = () => {};
 
@@ -361,7 +420,7 @@
 			if ($showSidebar && !value) {
 				const navElement = document.getElementsByTagName('nav')[0];
 				if (navElement) {
-					navElement.style['-webkit-app-region'] = 'drag';
+					(navElement as any).style.webkitAppRegion = 'drag';
 				}
 			}
 
@@ -380,12 +439,12 @@
 			if (navElement) {
 				if ($mobile) {
 					if (!value) {
-						navElement.style['-webkit-app-region'] = 'drag';
+						(navElement as any).style.webkitAppRegion = 'drag';
 					} else {
-						navElement.style['-webkit-app-region'] = 'no-drag';
+						(navElement as any).style.webkitAppRegion = 'no-drag';
 					}
 				} else {
-					navElement.style['-webkit-app-region'] = 'drag';
+					(navElement as any).style.webkitAppRegion = 'drag';
 				}
 			}
 		});
@@ -427,6 +486,8 @@
 	});
 </script>
 
+<CreateProjectModal bind:show={showCreateProject} on:submit={handleProjectSubmit} />
+
 <ArchivedChatsModal
 	bind:show={$showArchivedChats}
 	on:change={async () => {
@@ -434,32 +495,15 @@
 	}}
 />
 
-<ChannelModal
-	bind:show={showCreateChannel}
-	onSubmit={async ({ name, access_control }) => {
-		const res = await createNewChannel(localStorage.token, {
-			name: name,
-			access_control: access_control
-		}).catch((error) => {
-			toast.error(`${error}`);
-			return null;
-		});
+<ChannelModal bind:show={showCreateChannel} onSubmit={handleChannelSubmit} />
 
-		if (res) {
-			$socket.emit('join-channels', { auth: { token: $user?.token } });
-			await initChannels();
-			showCreateChannel = false;
-		}
-	}}
-/>
+<CreateProjectModal bind:show={showCreateProject} on:create={handleCreateProject} />
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 
 {#if $showSidebar}
 	<div
-		class=" {$isApp
-			? ' ml-[4.5rem] md:ml-0'
-			: ''} fixed md:hidden z-40 top-0 right-0 left-0 bottom-0 bg-black/60 w-full min-h-screen h-screen flex justify-center overflow-hidden overscroll-contain"
+		class="sidebar-overlay {$isApp ? 'ml-[4.5rem] md:ml-0' : ''} fixed md:hidden z-40 top-0 right-0 left-0 bottom-0 bg-black/60 backdrop-blur-md w-full min-h-screen h-screen flex justify-center overflow-hidden overscroll-contain"
 		on:mousedown={() => {
 			showSidebar.set(!$showSidebar);
 		}}
@@ -469,47 +513,54 @@
 <div
 	bind:this={navElement}
 	id="sidebar"
-	class="h-screen max-h-[100dvh] min-h-screen select-none {$showSidebar
-		? 'md:relative w-[260px] max-w-[260px]'
-		: '-translate-x-[260px] w-[0px]'} {$isApp
-		? `ml-[4.5rem] md:ml-0 `
-		: 'transition-width duration-200 ease-in-out'}  shrink-0 bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-200 text-sm fixed z-50 top-0 left-0 overflow-x-hidden
-        "
+	class="sidebar-container h-screen max-h-[100dvh] min-h-screen select-none {$showSidebar
+		? 'md:relative w-[280px] max-w-[280px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] md:shadow-none'
+		: '-translate-x-[280px] w-[0px]'} {$isApp
+		? 'ml-[4.5rem] md:ml-0'
+		: 'transition-all duration-300 ease-out'} shrink-0 bg-gradient-to-b from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-950/80 text-gray-900 dark:text-gray-100 text-sm fixed z-50 top-0 left-0 overflow-x-hidden border-r border-gray-200/80 dark:border-gray-800/80"
 	data-state={$showSidebar}
 >
+
 	<div
-		class="py-2 my-auto flex flex-col justify-between h-screen max-h-[100dvh] w-[260px] overflow-x-hidden z-50 {$showSidebar
+		class="py-3 my-auto flex flex-col justify-between h-screen max-h-[100dvh] w-[280px] overflow-x-hidden z-50 {$showSidebar
 			? ''
 			: 'invisible'}"
 	>
-		<div class="px-1.5 flex justify-between space-x-1 text-gray-600 dark:text-gray-400">
+		<!-- Enhanced Header with subtle gradient -->
+		<div class="px-2.5 flex items-center gap-2">
 			<button
-				class=" cursor-pointer p-[7px] flex rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+				class="sidebar-toggle p-2.5 flex rounded-xl hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-200 active:scale-95 group border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50 hover:shadow-sm"
 				on:click={() => {
 					showSidebar.set(!$showSidebar);
 				}}
+				aria-label="Toggle sidebar"
 			>
-				<div class=" m-auto self-center">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="2"
-						stroke="currentColor"
-						class="size-5"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
-						/>
-					</svg>
-				</div>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke-width="2.5"
+					stroke="currentColor"
+					class="size-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-200"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"
+					/>
+				</svg>
 			</button>
 
 			<a
 				id="sidebar-new-chat-button"
-				class="flex justify-between items-center flex-1 rounded-lg px-2 py-1 h-full text-right hover:bg-gray-100 dark:hover:bg-gray-900 transition no-drag-region"
+				class="new-chat-button flex-1 flex items-center justify-between gap-2.5 rounded-xl px-3 py-2.5
+       bg-white dark:bg-gray-800
+       border border-gray-200 dark:border-gray-700
+       hover:border-gray-300 dark:hover:border-gray-600
+       hover:shadow-md dark:hover:shadow-gray-900/30
+       transition-all duration-200 active:scale-[0.98]
+       no-drag-region group"
+
 				href="/"
 				draggable="false"
 				on:click={async () => {
@@ -524,56 +575,40 @@
 					}, 0);
 				}}
 			>
-				<div class="flex items-center">
-					<div class="self-center mx-1.5">
+				<div class="flex items-center gap-2.5 min-w-0">
+					<div class="flex-shrink-0 p-1.5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900/90 dark:to-gray-950/90 rounded-lg shadow-sm border border-gray-200/50 dark:border-gray-800/50">
 						<img
 							crossorigin="anonymous"
 							src="{WEBUI_BASE_URL}/static/favicon.png"
-							class=" size-5 -translate-x-1.5 rounded-full"
+							class="size-4 rounded"
 							alt="logo"
 						/>
 					</div>
-					<div class=" self-center font-medium text-sm text-gray-850 dark:text-white font-primary">
-						{$i18n.t('New Chat')}
-					</div>
+					<span class="font-semibold text-sm truncate text-gray-900 dark:text-gray-100"
+						>{$i18n.t('New Chat')}</span
+					>
 				</div>
 
-				<div>
-					<PencilSquare className=" size-5" strokeWidth="2" />
+				<div class="flex-shrink-0 p-1 bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg group-hover:from-orange-100 group-hover:to-orange-200/50 dark:group-hover:from-orange-900/30 dark:group-hover:to-orange-800/30 transition-all duration-200">
+					<PencilSquare
+						className="size-4 text-orange-600 dark:text-orange-400"
+						strokeWidth="2.5"
+					/>
 				</div>
 			</a>
 		</div>
 
-		<!-- {#if $user?.role === 'admin'}
-			<div class="px-1.5 flex justify-center text-gray-800 dark:text-gray-200">
+		<!-- Enhanced Workspace Link -->
+		{#if hasWorkspaceAccess}
+			<div class="px-2.5 mt-2.5">
 				<a
-					class="grow flex items-center space-x-3 rounded-lg px-2 py-[7px] hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-					href="/home"
-					on:click={() => {
-						selectedChatId = null;
-						chatId.set('');
-
-						if ($mobile) {
-							showSidebar.set(false);
-						}
-					}}
-					draggable="false"
-				>
-					<div class="self-center">
-						<Home strokeWidth="2" className="size-[1.1rem]" />
-					</div>
-
-					<div class="flex self-center translate-y-[0.5px]">
-						<div class=" self-center font-medium text-sm font-primary">{$i18n.t('Home')}</div>
-					</div>
-				</a>
-			</div>
-		{/if} -->
-
-		{#if $user?.role === 'admin' || $user?.permissions?.workspace?.models || $user?.permissions?.workspace?.knowledge || $user?.permissions?.workspace?.prompts || $user?.permissions?.workspace?.tools}
-			<div class="px-1.5 flex justify-center text-gray-800 dark:text-gray-200">
-				<a
-					class="grow flex items-center space-x-3 rounded-lg px-2 py-[7px] hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+					class="workspace-link flex items-center gap-2.5 rounded-xl px-3 py-2.5 
+					hover:bg-gradient-to-r hover:from-white/90 hover:to-gray-50/90 
+					dark:hover:from-gray-800/90 dark:hover:to-gray-900/80 
+					transition-all duration-200 active:scale-[0.98] group 
+					border border-transparent 
+					hover:border-gray-200/60 dark:hover:border-gray-700/60
+					hover:shadow-sm"
 					href="/workspace"
 					on:click={() => {
 						selectedChatId = null;
@@ -585,14 +620,14 @@
 					}}
 					draggable="false"
 				>
-					<div class="self-center">
+					<div class="flex-shrink-0 p-1.5 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-900/40 dark:to-gray-950/40 rounded-lg group-hover:from-gray-200 group-hover:to-gray-100 dark:group-hover:from-gray-800/50 dark:group-hover:to-gray-900/50 transition-all duration-200 border border-gray-200/30 dark:border-gray-800/30">
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							fill="none"
 							viewBox="0 0 24 24"
-							stroke-width="2"
+							stroke-width="2.5"
 							stroke="currentColor"
-							class="size-[1.1rem]"
+							class="size-4 text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-200"
 						>
 							<path
 								stroke-linecap="round"
@@ -601,35 +636,36 @@
 							/>
 						</svg>
 					</div>
-
-					<div class="flex self-center translate-y-[0.5px]">
-						<div class=" self-center font-medium text-sm font-primary">{$i18n.t('Workspace')}</div>
-					</div>
+					<span class="font-semibold text-sm text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{$i18n.t('Workspace')}</span>
 				</a>
 			</div>
 		{/if}
 
-		<div class="relative {$temporaryChatEnabled ? 'opacity-20' : ''}">
+		<!-- Enhanced Search Input with subtle border -->
+		<div class="px-2.5 mt-3 relative {$temporaryChatEnabled ? 'opacity-30 pointer-events-none' : ''}">
 			{#if $temporaryChatEnabled}
 				<div class="absolute z-40 w-full h-full flex justify-center"></div>
 			{/if}
 
-			<SearchInput
-				bind:value={search}
-				on:input={searchDebounceHandler}
-				placeholder={$i18n.t('Search')}
-				showClearButton={true}
-			/>
+			<div class="search-wrapper">
+				<SearchInput
+					bind:value={search}
+					on:input={searchDebounceHandler}
+					placeholder={$i18n.t('Search')}
+					showClearButton={true}
+				/>
+			</div>
 		</div>
 
+		<!-- Enhanced Chat List with better spacing -->
 		<div
-			class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden {$temporaryChatEnabled
-				? 'opacity-20'
-				: ''}"
+			class="chat-list-container relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden mt-3 {$temporaryChatEnabled
+				? 'opacity-30 pointer-events-none'
+				: ''} enhanced-scrollbar"
 		>
-			{#if $config?.features?.enable_channels && ($user?.role === 'admin' || $channels.length > 0) && !search}
+			{#if hasChannelsEnabled && ($user?.role === 'admin' || $channels.length > 0) && !search}
 				<Folder
-					className="px-2 mt-0.5"
+					className="px-2.5"
 					name={$i18n.t('Channels')}
 					dragAndDrop={false}
 					onAdd={async () => {
@@ -654,14 +690,71 @@
 				</Folder>
 			{/if}
 
+			<!-- ENHANCED PROJECTS SECTION -->
+			{#if !search}
+				<Folder
+					collapsible={true}
+					className="px-2.5 projects-section {hasChannelsEnabled &&
+					($user?.role === 'admin' || $channels.length > 0)
+						? 'mt-2.5'
+						: ''}"
+					name={$i18n.t('Projects')}
+					onAdd={() => {
+						showCreateProject = true;
+					}}
+					onAddLabel={$i18n.t('New Folder')}
+					on:import={(e) => {
+						importChatHandler(e.detail);
+					}}
+					on:drop={async (e) => {
+						const { type, id, item } = e.detail;
+
+						if (type === 'folder') {
+							if (folders[id].parent_id === null) {
+								return;
+							}
+
+							const res = await updateFolderParentIdById(localStorage.token, id, undefined).catch(
+								(error) => {
+									toast.error(`${error}`);
+									return null;
+								}
+							);
+
+							if (res) {
+								await initFolders();
+							}
+						}
+					}}
+				>
+					{#if $temporaryChatEnabled}
+						<div class="absolute z-40 w-full h-full flex justify-center"></div>
+					{/if}
+
+					{#if folders}
+						<Folders
+							{folders}
+							on:import={(e) => {
+								const { folderId, items } = e.detail;
+								importChatHandler(items, false, folderId);
+							}}
+							on:update={async (e) => {
+								initChatList();
+							}}
+							on:change={async () => {
+								initChatList();
+							}}
+						/>
+					{/if}
+				</Folder>
+			{/if}
+
+			<!-- ENHANCED CHATS SECTION -->
 			<Folder
 				collapsible={!search}
-				className="px-2 mt-0.5"
+				className="px-2.5 mt-0.5"
 				name={$i18n.t('Chats')}
-				onAdd={() => {
-					createFolder();
-				}}
-				onAddLabel={$i18n.t('New Folder')}
+				dragAndDrop={true}
 				on:import={(e) => {
 					importChatHandler(e.detail);
 				}}
@@ -679,12 +772,14 @@
 						if (chat) {
 							console.log(chat);
 							if (chat.folder_id) {
-								const res = await updateChatFolderIdById(localStorage.token, chat.id, null).catch(
-									(error) => {
-										toast.error(`${error}`);
-										return null;
-									}
-								);
+								const res = await updateChatFolderIdById(
+									localStorage.token,
+									chat.id,
+									undefined
+								).catch((error) => {
+									toast.error(`${error}`);
+									return null;
+								});
 							}
 
 							if (chat.pinned) {
@@ -692,21 +787,6 @@
 							}
 
 							initChatList();
-						}
-					} else if (type === 'folder') {
-						if (folders[id].parent_id === null) {
-							return;
-						}
-
-						const res = await updateFolderParentIdById(localStorage.token, id, null).catch(
-							(error) => {
-								toast.error(`${error}`);
-								return null;
-							}
-						);
-
-						if (res) {
-							await initFolders();
 						}
 					}
 				}}
@@ -716,7 +796,7 @@
 				{/if}
 
 				{#if !search && $pinnedChats.length > 0}
-					<div class="flex flex-col space-y-1 rounded-xl">
+					<div class="flex flex-col space-y-1">
 						<Folder
 							className=""
 							bind:open={showPinnedChat}
@@ -744,7 +824,7 @@
 											const res = await updateChatFolderIdById(
 												localStorage.token,
 												chat.id,
-												null
+												undefined
 											).catch((error) => {
 												toast.error(`${error}`);
 												return null;
@@ -762,13 +842,13 @@
 							name={$i18n.t('Pinned')}
 						>
 							<div
-								class="ml-3 pl-1 mt-[1px] flex flex-col overflow-y-auto scrollbar-hidden border-s border-gray-100 dark:border-gray-900"
+								class="ml-3 pl-1 mt-0.5 flex flex-col overflow-y-auto scrollbar-hidden border-s-2 border-blue-300/60 dark:border-blue-700/60"
 							>
-								{#each $pinnedChats as chat, idx}
+								{#each pinnedChatList as chat, idx}
 									<ChatItem
 										className=""
-										id={chat.id}
-										title={chat.title}
+										id={chat.id ?? ''}
+										title={chat.title ?? ''}
 										{shiftKey}
 										selected={selectedChatId === chat.id}
 										on:select={() => {
@@ -782,7 +862,7 @@
 										}}
 										on:tag={(e) => {
 											const { type, name } = e.detail;
-											tagEventHandler(type, name, chat.id);
+											tagEventHandler(type, name, chat.id ?? '');
 										}}
 									/>
 								{/each}
@@ -791,59 +871,25 @@
 					</div>
 				{/if}
 
-				{#if !search && folders}
-					<Folders
-						{folders}
-						on:import={(e) => {
-							const { folderId, items } = e.detail;
-							importChatHandler(items, false, folderId);
-						}}
-						on:update={async (e) => {
-							initChatList();
-						}}
-						on:change={async () => {
-							initChatList();
-						}}
-					/>
-				{/if}
-
-				<div class=" flex-1 flex flex-col overflow-y-auto scrollbar-hidden">
-					<div class="pt-1.5">
+				<div class="flex-1 flex flex-col overflow-y-auto scrollbar-hidden">
+					<div class="pt-1">
 						{#if $chats}
-							{#each $chats as chat, idx}
-								{#if idx === 0 || (idx > 0 && chat.time_range !== $chats[idx - 1].time_range)}
+							{#each renderChatList as chat, idx}
+								{#if chat.showTimeRange}
 									<div
-										class="w-full pl-2.5 text-xs text-gray-500 dark:text-gray-500 font-medium {idx ===
+										class="time-range-label w-full pl-3 text-[0.65rem] font-bold uppercase tracking-wider text-gray-500/90 dark:text-gray-500/80 {idx ===
 										0
 											? ''
-											: 'pt-5'} pb-1.5"
+											: 'pt-5'} pb-2"
 									>
 										{$i18n.t(chat.time_range)}
-										<!-- localisation keys for time_range to be recognized from the i18next parser (so they don't get automatically removed):
-							{$i18n.t('Today')}
-							{$i18n.t('Yesterday')}
-							{$i18n.t('Previous 7 days')}
-							{$i18n.t('Previous 30 days')}
-							{$i18n.t('January')}
-							{$i18n.t('February')}
-							{$i18n.t('March')}
-							{$i18n.t('April')}
-							{$i18n.t('May')}
-							{$i18n.t('June')}
-							{$i18n.t('July')}
-							{$i18n.t('August')}
-							{$i18n.t('September')}
-							{$i18n.t('October')}
-							{$i18n.t('November')}
-							{$i18n.t('December')}
-							-->
 									</div>
 								{/if}
 
 								<ChatItem
 									className=""
-									id={chat.id}
-									title={chat.title}
+									id={chat.id ?? ''}
+									title={chat.title ?? ''}
 									{shiftKey}
 									selected={selectedChatId === chat.id}
 									on:select={() => {
@@ -857,7 +903,7 @@
 									}}
 									on:tag={(e) => {
 										const { type, name } = e.detail;
-										tagEventHandler(type, name, chat.id);
+										tagEventHandler(type, name, chat.id ?? '');
 									}}
 								/>
 							{/each}
@@ -871,17 +917,19 @@
 									}}
 								>
 									<div
-										class="w-full flex justify-center py-1 text-xs animate-pulse items-center gap-2"
+										class="loading-indicator w-full flex justify-center py-4 text-xs text-gray-500/80 dark:text-gray-400/80 items-center gap-2"
 									>
-										<Spinner className=" size-4" />
-										<div class=" ">Loading...</div>
+										<Spinner className="size-3.5" />
+										<span class="font-medium">Loading more chats...</span>
 									</div>
 								</Loader>
 							{/if}
 						{:else}
-							<div class="w-full flex justify-center py-1 text-xs animate-pulse items-center gap-2">
-								<Spinner className=" size-4" />
-								<div class=" ">Loading...</div>
+							<div
+								class="loading-indicator w-full flex justify-center py-6 text-xs text-gray-500/80 dark:text-gray-400/80 items-center gap-2"
+							>
+								<Spinner className="size-3.5" />
+								<span class="font-medium">Loading chats...</span>
 							</div>
 						{/if}
 					</div>
@@ -889,7 +937,8 @@
 			</Folder>
 		</div>
 
-		<div class="px-2">
+		<!-- Enhanced User Menu with gradient border -->
+		<div class="user-menu-container px-2.5 mt-2.5 border-t border-gray-200/60 dark:border-gray-800/60 pt-2.5">
 			<div class="flex flex-col font-primary">
 				{#if $user !== undefined && $user !== null}
 					<UserMenu
@@ -901,19 +950,37 @@
 						}}
 					>
 						<button
-							class=" flex items-center rounded-xl py-2.5 px-2.5 w-full hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-							on:click={() => {
-								showDropdown = !showDropdown;
-							}}
+							class="user-profile-button flex items-center gap-2.5 rounded-xl py-2.5 px-3 w-full
+							hover:bg-gradient-to-r hover:from-white/90 hover:to-gray-50/90 
+							dark:hover:from-gray-800/90 dark:hover:to-gray-900/80 
+							transition-all duration-200 active:scale-[0.98] group 
+							border border-transparent 
+							hover:border-gray-200/60 dark:hover:border-gray-700/60
+							hover:shadow-sm"
 						>
-							<div class=" self-center mr-3">
+							<div class="relative flex-shrink-0">
 								<img
 									src={$user?.profile_image_url}
-									class=" max-w-[30px] object-cover rounded-full"
+									class="w-9 h-9 object-cover rounded-full ring-2 ring-gray-200/60 dark:ring-gray-700/60 group-hover:ring-gray-300/80 dark:group-hover:ring-gray-600/80 transition-all duration-200"
 									alt="User profile"
 								/>
+								<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 shadow-sm"></div>
 							</div>
-							<div class=" self-center font-medium">{$user?.name}</div>
+
+							<div class="font-semibold text-sm truncate flex-1 text-left text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+								{$user?.name}
+							</div>
+
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="2.5"
+								stroke="currentColor"
+								class="ml-auto size-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-all group-hover:translate-x-0.5"
+							>
+								<path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6" />
+							</svg>
 						</button>
 					</UserMenu>
 				{/if}
@@ -923,12 +990,271 @@
 </div>
 
 <style>
+	/* ===== Improve Folder Items Inside Projects ===== */
+
+:global(.projects-section .folder-item),
+:global(.projects-section .folder-row) {
+	background: transparent !important;
+	border-radius: 0.5rem;
+	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Folder text (light mode) */
+:global(.projects-section .folder-item .folder-name),
+:global(.projects-section .folder-row .folder-name) {
+	color: rgb(31, 41, 55) !important; /* gray-800 */
+	font-weight: 500;
+}
+
+/* Folder text (dark mode) */
+:global(.dark .projects-section .folder-item .folder-name),
+:global(.dark .projects-section .folder-row .folder-name) {
+	color: rgb(229, 231, 235) !important; /* gray-200 */
+}
+
+/* Hover state */
+:global(.projects-section .folder-item:hover),
+:global(.projects-section .folder-row:hover) {
+	background: rgba(243, 244, 246, 0.7) !important; /* gray-100 */
+}
+
+:global(.dark .projects-section .folder-item:hover),
+:global(.dark .projects-section .folder-row:hover) {
+	background: rgba(55, 65, 81, 0.5) !important; /* gray-700 */
+}
+
+/* Active / selected folder */
+:global(.projects-section .folder-item.active),
+:global(.projects-section .folder-row.active) {
+	color: rgb(249, 115, 22) !important; /* orange-500 */
+	font-weight: 600;
+}
+
+	/* Enhanced scrollbar with smoother appearance */
+	.enhanced-scrollbar::-webkit-scrollbar {
+		width: 5px;
+	}
+
+	.enhanced-scrollbar::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	.enhanced-scrollbar::-webkit-scrollbar-thumb {
+		background: linear-gradient(to bottom, rgba(156, 163, 175, 0.2), rgba(156, 163, 175, 0.4));
+		border-radius: 10px;
+		transition: background 0.3s ease;
+	}
+
+	.enhanced-scrollbar::-webkit-scrollbar-thumb:hover {
+		background: linear-gradient(to bottom, rgba(156, 163, 175, 0.4), rgba(156, 163, 175, 0.6));
+	}
+
+	:global(.dark) .enhanced-scrollbar::-webkit-scrollbar-thumb {
+		background: linear-gradient(to bottom, rgba(75, 85, 99, 0.3), rgba(75, 85, 99, 0.5));
+	}
+
+	:global(.dark) .enhanced-scrollbar::-webkit-scrollbar-thumb:hover {
+		background: linear-gradient(to bottom, rgba(75, 85, 99, 0.5), rgba(75, 85, 99, 0.7));
+	}
+
 	.scrollbar-hidden:active::-webkit-scrollbar-thumb,
 	.scrollbar-hidden:focus::-webkit-scrollbar-thumb,
 	.scrollbar-hidden:hover::-webkit-scrollbar-thumb {
 		visibility: visible;
 	}
+	
 	.scrollbar-hidden::-webkit-scrollbar-thumb {
 		visibility: hidden;
+	}
+
+	/* Smooth fade-in animation for overlay */
+	.sidebar-overlay {
+		animation: overlayFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	@keyframes overlayFadeIn {
+		from {
+			opacity: 0;
+			backdrop-filter: blur(0px);
+		}
+		to {
+			opacity: 1;
+			backdrop-filter: blur(12px);
+		}
+	}
+
+	/* Subtle scale animation for interactive elements */
+	.sidebar-toggle,
+	.new-chat-button,
+	.workspace-link,
+	.user-profile-button {
+		transform-origin: center;
+		will-change: transform;
+	}
+
+	/* Enhanced loading indicator with smoother pulse */
+	.loading-indicator {
+		animation: smoothPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+	}
+
+	@keyframes smoothPulse {
+		0%, 100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.6;
+		}
+	}
+
+	/* Time range label with better typography */
+	.time-range-label {
+		letter-spacing: 0.06em;
+		font-variant: small-caps;
+	}
+
+	/* Enhanced glassmorphism effect */
+	.sidebar-container {
+		backdrop-filter: blur(24px) saturate(180%);
+		-webkit-backdrop-filter: blur(24px) saturate(180%);
+	}
+
+	/* Search wrapper subtle divider */
+	.search-wrapper {
+		position: relative;
+	}
+
+	.search-wrapper::after {
+		content: '';
+		position: absolute;
+		bottom: -10px;
+		left: 8px;
+		right: 8px;
+		height: 1px;
+		background: linear-gradient(90deg, 
+			transparent 0%, 
+			rgba(229, 231, 235, 0.6) 15%, 
+			rgba(229, 231, 235, 0.6) 85%, 
+			transparent 100%);
+		opacity: 0.5;
+	}
+
+	:global(.dark) .search-wrapper::after {
+		background: linear-gradient(90deg, 
+			transparent 0%, 
+			rgba(55, 65, 81, 0.6) 15%, 
+			rgba(55, 65, 81, 0.6) 85%, 
+			transparent 100%);
+		opacity: 0.4;
+	}
+
+	/* CLEAN PROJECTS SECTION - NO SPECIAL STYLING */
+	:global(.projects-section) {
+		position: relative;
+	}
+
+	:global(.projects-section .folder-header) {
+		background: transparent !important;
+		border: none !important;
+		border-radius: 0 !important;
+		padding: 0.5rem 0 !important;
+		margin-bottom: 0.25rem !important;
+		box-shadow: none !important;
+		transition: none !important;
+	}
+
+	:global(.dark .projects-section .folder-header) {
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+	}
+
+	:global(.projects-section .folder-header:hover) {
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+	}
+
+	:global(.projects-section > *) {
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
+	}
+
+	:global(.projects-section .folder-name) {
+		font-weight: 600;
+		font-size: 0.875rem;
+		letter-spacing: 0;
+		color: rgb(55, 65, 81) !important;
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	:global(.dark .projects-section .folder-name) {
+		color: rgb(209, 213, 219) !important;
+	}
+
+	:global(.projects-section .folder-name::before) {
+		content: '';
+		display: inline-block;
+		width: 1.125rem;
+		height: 1.125rem;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='rgb(75, 85, 99)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z'/%3E%3C/svg%3E");
+		background-size: contain;
+		background-repeat: no-repeat;
+		flex-shrink: 0;
+	}
+
+	:global(.dark .projects-section .folder-name::before) {
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='2' stroke='rgb(156, 163, 175)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z'/%3E%3C/svg%3E");
+	}
+
+	:global(.projects-section button.add-button) {
+		background: transparent !important;
+		border: none !important;
+		border-radius: 0.375rem !important;
+		padding: 0.25rem 0.5rem !important;
+		color: rgb(75, 85, 99) !important;
+		font-weight: 500 !important;
+		font-size: 0.75rem !important;
+		transition: background-color 0.2s, color 0.2s !important;
+		box-shadow: none !important;
+	}
+
+	:global(.dark .projects-section button.add-button) {
+		background: transparent !important;
+		border: none !important;
+		color: rgb(156, 163, 175) !important;
+		box-shadow: none !important;
+	}
+
+	:global(.projects-section button.add-button:hover) {
+		background: rgba(243, 244, 246, 0.8) !important;
+		border: none !important;
+		color: rgb(17, 24, 39) !important;
+		transform: none !important;
+		box-shadow: none !important;
+	}
+
+	:global(.dark .projects-section button.add-button:hover) {
+		background: rgba(55, 65, 81, 0.5) !important;
+		border: none !important;
+		color: rgb(243, 244, 246) !important;
+		box-shadow: none !important;
+	}
+
+	/* Micro-interactions */
+	@keyframes subtle-bounce {
+		0%, 100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(-2px);
+		}
+	}
+
+	.new-chat-button:hover .flex-shrink-0:last-child {
+		animation: subtle-bounce 0.6s ease-in-out;
 	}
 </style>

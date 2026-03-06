@@ -18,7 +18,7 @@
 
 	import { slide } from 'svelte/transition';
 	import { page } from '$app/stores';
-
+	import { WEBUI_BASE_URL } from '$lib/constants';
 	import ShareChatModal from '../chat/ShareChatModal.svelte';
 	import ModelSelector from '../chat/ModelSelector.svelte';
 	import Tooltip from '../common/Tooltip.svelte';
@@ -47,7 +47,8 @@
 
 <ShareChatModal bind:show={showShareChatModal} chatId={$chatId} />
 
-<nav class="sticky top-0 z-30 w-full py-1.5 -mb-8 flex flex-col items-center drag-region">
+<nav class="sticky top-0 z-30 w-full py-3 flex flex-col items-center drag-region border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+
 	<div class="flex items-center w-full px-1.5">
 		<div
 			class=" bg-linear-to-b via-50% from-white via-white to-transparent dark:from-gray-900 dark:via-gray-900 dark:to-transparent pointer-events-none absolute inset-0 -bottom-7 z-[-1]"
@@ -60,18 +61,61 @@
 						? 'md:hidden'
 						: ''} mr-1 self-start flex flex-none items-center text-gray-600 dark:text-gray-400"
 				>
-					<button
-						id="sidebar-toggle-button"
-						class="cursor-pointer px-2 py-2 flex rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
-						on:click={() => {
-							showSidebar.set(!$showSidebar);
-						}}
-						aria-label="Toggle Sidebar"
-					>
-						<div class=" m-auto self-center">
-							<MenuLines />
-						</div>
-					</button>
+					<!-- Toggle between Logo and Menu Icon based on sidebar state -->
+					{#if $showSidebar}
+						<!-- Show menu icon when sidebar is open -->
+						<button
+							id="sidebar-toggle-button"
+							class="cursor-pointer px-2 py-2 flex rounded-xl hover:bg-gray-50 dark:hover:bg-gray-850 transition"
+							on:click={() => {
+								showSidebar.set(!$showSidebar);
+							}}
+							aria-label="Toggle Sidebar"
+						>
+							<div class=" m-auto self-center">
+								<MenuLines />
+							</div>
+						</button>
+					{:else}
+						<!-- Show logo when sidebar is closed -->
+						<Tooltip content={$showSidebar ? $i18n.t('Close Bar') : $i18n.t('Open Bar')}>
+							<button
+								id="sidebar-toggle-button"
+								class="cursor-pointer px-2 py-2 flex rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-850 transition"
+								on:click={() => {
+									showSidebar.set(!$showSidebar);
+								}}
+								aria-label="Toggle Sidebar"
+							>
+								<div class="m-auto self-center">
+									<img
+										crossorigin="anonymous"
+										src="{WEBUI_BASE_URL}/static/favicon.png"
+										class="size-5 rounded"
+										alt="logo"
+									/>
+								</div>
+							</button>
+						</Tooltip>
+
+					{/if}
+					
+					<Tooltip content={$i18n.t('New Chat')}>
+						<button
+							id="new-chat-button"
+							class=" flex {$showSidebar
+								? 'md:hidden'
+								: ''} cursor-pointer px-2 py-2 rounded-xl text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-850 transition"
+							on:click={() => {
+								initNewChat();
+							}}
+							aria-label="New Chat"
+						>
+							<div class=" m-auto self-center">
+								<PencilSquare className=" size-5" strokeWidth="2" />
+							</div>
+						</button>
+					</Tooltip>
 				</div>
 
 				<div
@@ -81,6 +125,7 @@
 				>
 					{#if showModelSelector}
 						<ModelSelector bind:selectedModels showSetDefault={!shareEnabled} />
+						
 					{/if}
 				</div>
 
@@ -120,6 +165,73 @@
 							</button>
 						</Menu>
 					{/if}
+					
+					<!-- Theme Toggle Button -->
+					<button
+						class="flex items-center h-6 cursor-pointer rounded-full
+							transition-all duration-300 ease-in-out
+							bg-gray-200 dark:bg-gray-600 hover:shadow-md"
+						on:click={() => {
+							const htmlElement = document.documentElement;
+							const isDark = htmlElement.classList.contains('dark');
+
+							if (isDark) {
+								htmlElement.classList.remove('dark');
+								localStorage.setItem('theme', 'light');
+							} else {
+								htmlElement.classList.add('dark');
+								localStorage.setItem('theme', 'dark');
+							}
+						}}
+						aria-label="Toggle Theme"
+					>
+						<!-- Light Mode -->
+						<div class="flex items-center dark:hidden">
+							<span class="px-2 text-[10px] font-semibold text-gray-800"> DAY </span>
+							<div class="bg-white rounded-full p-1 mr-1 border border-gray-300">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="2"
+									stroke="currentColor"
+									class="w-3.5 h-3.5 text-gray-800"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+									/>
+								</svg>
+							</div>
+						</div>
+
+						<!-- Dark Mode -->
+						<div class="hidden dark:flex items-center">
+							<div class="bg-white rounded-full p-1 ml-1 border border-gray-700">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="2"
+									stroke="currentColor"
+									class="w-3.5 h-3.5 text-gray-800"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M21.752 15.002A9.718 9.718 0 0118 15.75
+											c-5.385 0-9.75-4.365-9.75-9.75
+											0-1.33.266-2.597.748-3.752
+											A9.753 9.753 0 003 11.25
+											C3 16.635 7.365 21 12.75 21
+											a9.753 9.753 0 009.002-5.998z"
+									/>
+								</svg>
+							</div>
+							<span class="px-2 text-[10px] font-semibold text-white"> NIGHT </span>
+						</div>
+					</button>
 
 					<Tooltip content={$i18n.t('Controls')}>
 						<button
@@ -135,7 +247,7 @@
 						</button>
 					</Tooltip>
 
-					<Tooltip content={$i18n.t('New Chat')}>
+					<!-- <Tooltip content={$i18n.t('New Chat')}>
 						<button
 							id="new-chat-button"
 							class=" flex {$showSidebar
@@ -150,9 +262,9 @@
 								<PencilSquare className=" size-5" strokeWidth="2" />
 							</div>
 						</button>
-					</Tooltip>
+					</Tooltip> -->
 
-					{#if $user !== undefined && $user !== null}
+					<!-- {#if $user !== undefined && $user !== null}
 						<UserMenu
 							className="max-w-[200px]"
 							role={$user?.role}
@@ -176,7 +288,7 @@
 								</div>
 							</button>
 						</UserMenu>
-					{/if}
+					{/if} -->
 				</div>
 			</div>
 		</div>
