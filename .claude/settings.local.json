@@ -5,7 +5,8 @@
       "Bash(grep:*)",
       "WebSearch",
       "WebFetch(domain:docs.openwebui.com)",
-      "WebFetch(domain:docs.ollama.com)"
+      "WebFetch(domain:docs.ollama.com)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
