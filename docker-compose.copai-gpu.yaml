@@ -10,14 +10,12 @@ services:
     volumes:
       - open-webui:/app/backend/data
       - ./static:/app/static/custom:ro
-    ports:
-      - "127.0.0.1:${OPEN_WEBUI_PORT-8080}:8080"
+    network_mode: host
     environment:
-      - 'OLLAMA_BASE_URL=http://host.docker.internal:11434'
+      - 'OLLAMA_BASE_URL=http://127.0.0.1:11434'
       - 'WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}'
       - 'WEBUI_URL=https://chat.copai.ai'
-    extra_hosts:
-      - host.docker.internal:host-gateway
+      - 'PORT=${OPEN_WEBUI_PORT-8080}'
     restart: unless-stopped
 
 volumes:
