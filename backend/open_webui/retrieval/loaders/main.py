@@ -21,6 +21,12 @@ from langchain_community.document_loaders import (
 )
 from langchain_core.documents import Document
 
+try:
+    from langchain_community.document_loaders import PyMuPDFLoader
+    PYMUPDF_AVAILABLE = True
+except ImportError:
+    PYMUPDF_AVAILABLE = False
+
 from open_webui.retrieval.loaders.mistral import MistralLoader
 
 from open_webui.env import SRC_LOG_LEVELS, GLOBAL_LOG_LEVEL
@@ -175,7 +181,16 @@ class Loader:
         self, filename: str, file_content_type: str, file_path: str
     ) -> list[Document]:
         loader = self._get_loader(filename, file_content_type, file_path)
-        docs = loader.load()
+        try:
+            docs = loader.load()
+        except Exception as e:
+            file_ext = filename.split(".")[-1].lower()
+            if file_ext == "pdf":
+                log.warning("PDF loading failed: %s. Retrying without image extraction.", e)
+                loader = PyPDFLoader(file_path, extract_images=False)
+                docs = loader.load()
+            else:
+                raise
 
         return [
             Document(
@@ -242,9 +257,12 @@ class Loader:
             )
         else:
             if file_ext == "pdf":
-                loader = PyPDFLoader(
-                    file_path, extract_images=self.kwargs.get("PDF_EXTRACT_IMAGES")
-                )
+                if PYMUPDF_AVAILABLE:
+                    loader = PyMuPDFLoader(file_path)
+                else:
+                    loader = PyPDFLoader(
+                        file_path, extract_images=self.kwargs.get("PDF_EXTRACT_IMAGES")
+                    )
             elif file_ext == "csv":
                 loader = CSVLoader(file_path, autodetect_encoding=True)
             elif file_ext == "rst":

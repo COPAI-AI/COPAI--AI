@@ -6,7 +6,13 @@
       "WebSearch",
       "WebFetch(domain:docs.openwebui.com)",
       "WebFetch(domain:docs.ollama.com)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(python3:*)",
+      "Bash(pip show:*)",
+      "Bash(python:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:reference.langchain.com)",
+      "WebFetch(domain:pypdf.readthedocs.io)"
     ]
   }
 }
