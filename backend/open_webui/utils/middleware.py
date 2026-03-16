@@ -686,7 +686,10 @@ async def process_chat_payload(request, form_data, user, metadata, model):
 
     # --- Langfuse: start trace ---
     try:
-        if getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
+        _lf_enabled = getattr(request.app.state.config, "ENABLE_LANGFUSE", "MISSING")
+        from loguru import logger as _lf_log
+        _lf_log.info(f"[Langfuse] ENABLE_LANGFUSE={_lf_enabled!r}")
+        if _lf_enabled:
             from datetime import datetime, timezone
             from open_webui.utils.langfuse_integration import start_trace
 
@@ -703,7 +706,8 @@ async def process_chat_payload(request, form_data, user, metadata, model):
             request.state.langfuse_trace_start = datetime.now(timezone.utc)
             request.state.langfuse_rag_ctx = None
     except Exception as _lf_exc:
-        log.debug(f"Langfuse trace start error: {_lf_exc}")
+        from loguru import logger as _lf_log
+        _lf_log.warning(f"[Langfuse] trace start error: {_lf_exc}")
     # --- end Langfuse ---
 
     form_data = apply_params_to_form_data(form_data, model)
