@@ -702,6 +702,7 @@ async def process_chat_payload(request, form_data, user, metadata, model):
                 input_messages=form_data.get("messages", []),
                 metadata=metadata,
             )
+            _lf_log.info(f"[Langfuse] start_trace returned: {_lf_trace!r}")
             request.state.langfuse_trace = _lf_trace
             request.state.langfuse_trace_start = datetime.now(timezone.utc)
             request.state.langfuse_rag_ctx = None
