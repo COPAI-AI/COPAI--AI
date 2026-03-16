@@ -686,7 +686,7 @@ async def process_chat_payload(request, form_data, user, metadata, model):
 
     # --- Langfuse: start trace ---
     try:
-        if getattr(request.app.state.config, "ENABLE_LANGFUSE", None) and getattr(request.app.state.config.ENABLE_LANGFUSE, "value", False):
+        if getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
             from datetime import datetime, timezone
             from open_webui.utils.langfuse_integration import start_trace
 
@@ -909,7 +909,7 @@ async def process_chat_payload(request, form_data, user, metadata, model):
 
     # --- Langfuse: capture RAG retrieval context ---
     try:
-        if sources and getattr(request.app.state.config, "ENABLE_LANGFUSE", None) and getattr(request.app.state.config.ENABLE_LANGFUSE, "value", False):
+        if sources and getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
             from open_webui.utils.langfuse_integration import (
                 start_retrieval_span,
                 end_retrieval_span,
@@ -1123,7 +1123,7 @@ async def process_chat_response(
 
     # --- Langfuse: wrap response for generation logging ---
     _lf_trace = getattr(request.state, "langfuse_trace", None)
-    if _lf_trace and getattr(request.app.state.config, "ENABLE_LANGFUSE", None) and getattr(request.app.state.config.ENABLE_LANGFUSE, "value", False):
+    if _lf_trace and getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
         import asyncio as _asyncio
         import json as _lf_json
         from datetime import datetime, timezone as _tz
