@@ -166,10 +166,12 @@ def log_generation(
         if end_time:
             gen_kwargs["end_time"] = end_time
         if usage:
+            _in = usage.get("prompt_tokens") or usage.get("prompt_eval_count")
+            _out = usage.get("completion_tokens") or usage.get("eval_count")
             gen_kwargs["usage"] = {
-                "input": usage.get("prompt_tokens"),
-                "output": usage.get("completion_tokens"),
-                "total": usage.get("total_tokens"),
+                "input": _in,
+                "output": _out,
+                "total": usage.get("total_tokens") or ((_in or 0) + (_out or 0)) or None,
                 "unit": "TOKENS",
             }
         trace.generation(**gen_kwargs)

@@ -1108,48 +1108,6 @@ async def process_chat_response(
                         except Exception as e:
                             pass
 
-        # --- Langfuse: log generation + optional RAGAS evaluation ---
-        try:
-            if getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
-                from datetime import datetime, timezone
-                from open_webui.utils.langfuse_integration import (
-                    log_generation,
-                    run_ragas_evaluation,
-                )
-
-                _lf_trace = getattr(request.state, "langfuse_trace", None)
-                _lf_start = getattr(request.state, "langfuse_trace_start", None)
-                _lf_end = datetime.now(timezone.utc)
-                _lf_content = message.get("content", "") if message else ""
-                _lf_usage = getattr(request.state, "langfuse_last_usage", None)
-
-                log_generation(
-                    _lf_trace,
-                    model_id=form_data.get("model", ""),
-                    input_messages=form_data.get("messages", []),
-                    output_content=_lf_content,
-                    usage=_lf_usage,
-                    start_time=_lf_start,
-                    end_time=_lf_end,
-                )
-
-                _rag_ctx = getattr(request.state, "langfuse_rag_ctx", None)
-                if (
-                    _rag_ctx
-                    and _lf_content
-                    and getattr(request.app.state.config, "ENABLE_RAGAS_EVALUATION", False)
-                ):
-                    _question = get_last_user_message(form_data.get("messages", []))
-                    await run_ragas_evaluation(
-                        _lf_trace,
-                        question=_question or "",
-                        answer=_lf_content,
-                        contexts=_rag_ctx,
-                    )
-        except Exception as _lf_exc:
-            log.debug(f"Langfuse post-generation error: {_lf_exc}")
-        # --- end Langfuse ---
-
     event_emitter = None
     event_caller = None
     if (
@@ -1162,6 +1120,92 @@ async def process_chat_response(
     ):
         event_emitter = get_event_emitter(metadata)
         event_caller = get_event_call(metadata)
+
+    # --- Langfuse: wrap response for generation logging ---
+    _lf_trace = getattr(request.state, "langfuse_trace", None)
+    if _lf_trace and getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
+        import asyncio as _asyncio
+        import json as _lf_json
+        from datetime import datetime, timezone as _tz
+        from open_webui.utils.langfuse_integration import log_generation, run_ragas_evaluation
+
+        _lf_start = getattr(request.state, "langfuse_trace_start", None)
+        _lf_rag_ctx = getattr(request.state, "langfuse_rag_ctx", None)
+        _lf_ragas = bool(getattr(request.app.state.config, "ENABLE_RAGAS_EVALUATION", False))
+        _lf_model = form_data.get("model", "")
+        _lf_messages = form_data.get("messages", [])
+
+        if isinstance(response, StreamingResponse):
+            async def _langfuse_stream_interceptor(original_iterator):
+                accumulated = []
+                usage_data = None
+                try:
+                    async for chunk in original_iterator:
+                        yield chunk
+                        raw = chunk.decode("utf-8", errors="ignore") if isinstance(chunk, bytes) else chunk
+                        for line in raw.splitlines():
+                            if not line.startswith("data: ") or line == "data: [DONE]":
+                                continue
+                            try:
+                                data = _lf_json.loads(line[6:])
+                                delta = data.get("choices", [{}])[0].get("delta", {})
+                                if delta.get("content"):
+                                    accumulated.append(delta["content"])
+                                if data.get("usage"):
+                                    usage_data = data["usage"]
+                            except Exception:
+                                pass
+                finally:
+                    try:
+                        output_content = "".join(accumulated)
+                        log_generation(
+                            _lf_trace,
+                            model_id=_lf_model,
+                            input_messages=_lf_messages,
+                            output_content=output_content,
+                            usage=usage_data,
+                            start_time=_lf_start,
+                            end_time=datetime.now(_tz.utc),
+                        )
+                        if _lf_rag_ctx and output_content and _lf_ragas:
+                            _asyncio.create_task(
+                                run_ragas_evaluation(
+                                    _lf_trace,
+                                    question=get_last_user_message(_lf_messages) or "",
+                                    answer=output_content,
+                                    contexts=_lf_rag_ctx,
+                                )
+                            )
+                    except Exception as _exc:
+                        log.debug(f"Langfuse stream interceptor error: {_exc}")
+
+            response = StreamingResponse(
+                _langfuse_stream_interceptor(response.body_iterator),
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=response.media_type,
+                background=response.background,
+            )
+        else:
+            # Non-streaming: read content directly from the response dict
+            try:
+                _lf_content = (
+                    response.get("choices", [{}])[0].get("message", {}).get("content", "")
+                    if isinstance(response, dict)
+                    else ""
+                )
+                log_generation(
+                    _lf_trace,
+                    model_id=_lf_model,
+                    input_messages=_lf_messages,
+                    output_content=_lf_content,
+                    usage=response.get("usage") if isinstance(response, dict) else None,
+                    start_time=_lf_start,
+                    end_time=datetime.now(_tz.utc),
+                )
+            except Exception as _exc:
+                log.debug(f"Langfuse non-streaming log error: {_exc}")
+    # --- end Langfuse ---
 
     # Non-streaming response
     if not isinstance(response, StreamingResponse):
