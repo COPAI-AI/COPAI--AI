@@ -441,6 +441,10 @@ async def lifespan(app: FastAPI):
 
     asyncio.create_task(periodic_usage_pool_cleanup())
     yield
+    if ENV_ENABLE_LANGFUSE:
+        from open_webui.utils.langfuse_integration import shutdown_langfuse_client
+
+        shutdown_langfuse_client()
 
 
 app = FastAPI(

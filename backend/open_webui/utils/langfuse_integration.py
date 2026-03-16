@@ -38,10 +38,32 @@ def initialize_langfuse_client(
             host=host,
         )
         log.info(f"Langfuse client initialized (host={host})")
+        try:
+            ok = _langfuse_client.auth_check()
+            if ok:
+                log.info("Langfuse auth_check passed — credentials valid.")
+            else:
+                log.warning(
+                    "Langfuse auth_check FAILED — check LANGFUSE_PUBLIC_KEY / SECRET_KEY and host."
+                )
+        except Exception as auth_exc:
+            log.warning(f"Langfuse auth_check error: {auth_exc}")
     except Exception as exc:
         log.warning(f"Langfuse client initialization failed: {exc}")
         _langfuse_client = None
     return _langfuse_client
+
+
+def shutdown_langfuse_client() -> None:
+    """Flush all pending traces and shut down the background worker."""
+    global _langfuse_client
+    if _langfuse_client is None:
+        return
+    try:
+        _langfuse_client.flush()
+        log.info("Langfuse: flushed pending traces on shutdown.")
+    except Exception as exc:
+        log.debug(f"Langfuse shutdown flush error: {exc}")
 
 
 def get_langfuse_client() -> Optional[object]:

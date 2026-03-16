@@ -15,7 +15,8 @@
       "WebFetch(domain:pypdf.readthedocs.io)",
       "Bash(find:*)",
       "Bash(openssl rand:*)",
-      "WebFetch(domain:langfuse.com)"
+      "WebFetch(domain:langfuse.com)",
+      "WebFetch(domain:docs.langfuse.com)"
     ]
   }
 }

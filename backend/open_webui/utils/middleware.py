@@ -686,7 +686,7 @@ async def process_chat_payload(request, form_data, user, metadata, model):
 
     # --- Langfuse: start trace ---
     try:
-        if getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
+        if getattr(request.app.state.config, "ENABLE_LANGFUSE", None) and getattr(request.app.state.config.ENABLE_LANGFUSE, "value", False):
             from datetime import datetime, timezone
             from open_webui.utils.langfuse_integration import start_trace
 
@@ -909,7 +909,7 @@ async def process_chat_payload(request, form_data, user, metadata, model):
 
     # --- Langfuse: capture RAG retrieval context ---
     try:
-        if sources and getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
+        if sources and getattr(request.app.state.config, "ENABLE_LANGFUSE", None) and getattr(request.app.state.config.ENABLE_LANGFUSE, "value", False):
             from open_webui.utils.langfuse_integration import (
                 start_retrieval_span,
                 end_retrieval_span,
@@ -1123,7 +1123,7 @@ async def process_chat_response(
 
     # --- Langfuse: wrap response for generation logging ---
     _lf_trace = getattr(request.state, "langfuse_trace", None)
-    if _lf_trace and getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
+    if _lf_trace and getattr(request.app.state.config, "ENABLE_LANGFUSE", None) and getattr(request.app.state.config.ENABLE_LANGFUSE, "value", False):
         import asyncio as _asyncio
         import json as _lf_json
         from datetime import datetime, timezone as _tz
@@ -1176,6 +1176,13 @@ async def process_chat_response(
                                     contexts=_lf_rag_ctx,
                                 )
                             )
+                        from open_webui.utils.langfuse_integration import get_langfuse_client as _get_lf_client
+                        _lf_client = _get_lf_client()
+                        if _lf_client:
+                            try:
+                                _lf_client.flush()
+                            except Exception:
+                                pass
                     except Exception as _exc:
                         log.debug(f"Langfuse stream interceptor error: {_exc}")
 
