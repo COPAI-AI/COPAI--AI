@@ -12,7 +12,9 @@
       "Bash(python:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:reference.langchain.com)",
-      "WebFetch(domain:pypdf.readthedocs.io)"
+      "WebFetch(domain:pypdf.readthedocs.io)",
+      "Bash(find:*)",
+      "Bash(openssl rand:*)"
     ]
   }
 }

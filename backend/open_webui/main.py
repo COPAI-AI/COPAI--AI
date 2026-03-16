@@ -293,6 +293,12 @@ from open_webui.config import (
     LDAP_USE_TLS,
     LDAP_CA_CERT_FILE,
     LDAP_CIPHERS,
+    # Langfuse
+    ENABLE_LANGFUSE,
+    LANGFUSE_HOST,
+    LANGFUSE_PUBLIC_KEY,
+    LANGFUSE_SECRET_KEY,
+    ENABLE_RAGAS_EVALUATION,
     # Misc
     ENV,
     CACHE_DIR,
@@ -346,6 +352,7 @@ from open_webui.env import (
     RESET_CONFIG_ON_START,
     OFFLINE_MODE,
     ENABLE_OTEL,
+    ENABLE_LANGFUSE as ENV_ENABLE_LANGFUSE,
     EXTERNAL_PWA_MANIFEST_URL,
 )
 
@@ -469,6 +476,22 @@ if ENABLE_OTEL:
 
 ########################################
 #
+# LANGFUSE
+#
+########################################
+
+if ENV_ENABLE_LANGFUSE:
+    from open_webui.utils.langfuse_integration import initialize_langfuse_client
+
+    initialize_langfuse_client(
+        host=LANGFUSE_HOST.value,
+        public_key=LANGFUSE_PUBLIC_KEY.value,
+        secret_key=LANGFUSE_SECRET_KEY.value,
+    )
+
+
+########################################
+#
 # OLLAMA
 #
 ########################################
@@ -572,6 +595,12 @@ app.state.config.LDAP_SEARCH_FILTERS = LDAP_SEARCH_FILTERS
 app.state.config.LDAP_USE_TLS = LDAP_USE_TLS
 app.state.config.LDAP_CA_CERT_FILE = LDAP_CA_CERT_FILE
 app.state.config.LDAP_CIPHERS = LDAP_CIPHERS
+
+app.state.config.ENABLE_LANGFUSE = ENABLE_LANGFUSE
+app.state.config.LANGFUSE_HOST = LANGFUSE_HOST
+app.state.config.LANGFUSE_PUBLIC_KEY = LANGFUSE_PUBLIC_KEY
+app.state.config.LANGFUSE_SECRET_KEY = LANGFUSE_SECRET_KEY
+app.state.config.ENABLE_RAGAS_EVALUATION = ENABLE_RAGAS_EVALUATION
 
 
 app.state.AUTH_TRUSTED_EMAIL_HEADER = WEBUI_AUTH_TRUSTED_EMAIL_HEADER

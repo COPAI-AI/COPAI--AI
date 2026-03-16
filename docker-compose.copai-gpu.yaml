@@ -16,6 +16,11 @@ services:
       - 'WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}'
       - 'WEBUI_URL=https://chat.copai.ai'
       - 'PORT=${OPEN_WEBUI_PORT-8080}'
+      - 'ENABLE_LANGFUSE=${ENABLE_LANGFUSE:-false}'
+      - 'LANGFUSE_HOST=${LANGFUSE_HOST:-http://127.0.0.1:3000}'
+      - 'LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}'
+      - 'LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}'
+      - 'ENABLE_RAGAS_EVALUATION=${ENABLE_RAGAS_EVALUATION:-false}'
     restart: unless-stopped
 
 volumes:

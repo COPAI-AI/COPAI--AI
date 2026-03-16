@@ -2693,3 +2693,37 @@ LDAP_CA_CERT_FILE = PersistentConfig(
 LDAP_CIPHERS = PersistentConfig(
     "LDAP_CIPHERS", "ldap.server.ciphers", os.environ.get("LDAP_CIPHERS", "ALL")
 )
+
+####################################
+# LANGFUSE
+####################################
+
+ENABLE_LANGFUSE = PersistentConfig(
+    "ENABLE_LANGFUSE",
+    "langfuse.enable",
+    os.environ.get("ENABLE_LANGFUSE", "False").lower() == "true",
+)
+
+LANGFUSE_HOST = PersistentConfig(
+    "LANGFUSE_HOST",
+    "langfuse.host",
+    os.environ.get("LANGFUSE_HOST", "http://localhost:3000"),
+)
+
+LANGFUSE_PUBLIC_KEY = PersistentConfig(
+    "LANGFUSE_PUBLIC_KEY",
+    "langfuse.public_key",
+    os.environ.get("LANGFUSE_PUBLIC_KEY", ""),
+)
+
+LANGFUSE_SECRET_KEY = PersistentConfig(
+    "LANGFUSE_SECRET_KEY",
+    "langfuse.secret_key",
+    os.environ.get("LANGFUSE_SECRET_KEY", ""),
+)
+
+ENABLE_RAGAS_EVALUATION = PersistentConfig(
+    "ENABLE_RAGAS_EVALUATION",
+    "langfuse.ragas.enable",
+    os.environ.get("ENABLE_RAGAS_EVALUATION", "False").lower() == "true",
+)

@@ -684,6 +684,28 @@ def apply_params_to_form_data(form_data, model):
 
 async def process_chat_payload(request, form_data, user, metadata, model):
 
+    # --- Langfuse: start trace ---
+    try:
+        if getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
+            from datetime import datetime, timezone
+            from open_webui.utils.langfuse_integration import start_trace
+
+            _lf_trace = start_trace(
+                trace_id=metadata.get("message_id") or str(uuid4()),
+                user_id=user.id,
+                session_id=metadata.get("session_id"),
+                chat_id=metadata.get("chat_id"),
+                model_id=form_data.get("model", ""),
+                input_messages=form_data.get("messages", []),
+                metadata=metadata,
+            )
+            request.state.langfuse_trace = _lf_trace
+            request.state.langfuse_trace_start = datetime.now(timezone.utc)
+            request.state.langfuse_rag_ctx = None
+    except Exception as _lf_exc:
+        log.debug(f"Langfuse trace start error: {_lf_exc}")
+    # --- end Langfuse ---
+
     form_data = apply_params_to_form_data(form_data, model)
     log.debug(f"form_data: {form_data}")
 
@@ -885,6 +907,34 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     except Exception as e:
         log.exception(e)
 
+    # --- Langfuse: capture RAG retrieval context ---
+    try:
+        if sources and getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
+            from open_webui.utils.langfuse_integration import (
+                start_retrieval_span,
+                end_retrieval_span,
+            )
+
+            _lf_trace = getattr(request.state, "langfuse_trace", None)
+            _lf_span = start_retrieval_span(
+                _lf_trace,
+                query=get_last_user_message(form_data["messages"]) or "",
+                files=metadata.get("files", []),
+                top_k=getattr(request.app.state.config, "RAG_TOP_K", 3),
+            )
+            end_retrieval_span(_lf_span, sources=sources)
+
+            _rag_contexts = [
+                doc
+                for source in sources
+                for doc in source.get("document", [])
+                if doc
+            ]
+            request.state.langfuse_rag_ctx = _rag_contexts or None
+    except Exception as _lf_exc:
+        log.debug(f"Langfuse RAG capture error: {_lf_exc}")
+    # --- end Langfuse ---
+
     # If context is not empty, insert it into the messages
     if len(sources) > 0:
         context_string = ""
@@ -1057,6 +1107,48 @@ async def process_chat_response(
                             )
                         except Exception as e:
                             pass
+
+        # --- Langfuse: log generation + optional RAGAS evaluation ---
+        try:
+            if getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
+                from datetime import datetime, timezone
+                from open_webui.utils.langfuse_integration import (
+                    log_generation,
+                    run_ragas_evaluation,
+                )
+
+                _lf_trace = getattr(request.state, "langfuse_trace", None)
+                _lf_start = getattr(request.state, "langfuse_trace_start", None)
+                _lf_end = datetime.now(timezone.utc)
+                _lf_content = message.get("content", "") if message else ""
+                _lf_usage = getattr(request.state, "langfuse_last_usage", None)
+
+                log_generation(
+                    _lf_trace,
+                    model_id=form_data.get("model", ""),
+                    input_messages=form_data.get("messages", []),
+                    output_content=_lf_content,
+                    usage=_lf_usage,
+                    start_time=_lf_start,
+                    end_time=_lf_end,
+                )
+
+                _rag_ctx = getattr(request.state, "langfuse_rag_ctx", None)
+                if (
+                    _rag_ctx
+                    and _lf_content
+                    and getattr(request.app.state.config, "ENABLE_RAGAS_EVALUATION", False)
+                ):
+                    _question = get_last_user_message(form_data.get("messages", []))
+                    await run_ragas_evaluation(
+                        _lf_trace,
+                        question=_question or "",
+                        answer=_lf_content,
+                        contexts=_rag_ctx,
+                    )
+        except Exception as _lf_exc:
+            log.debug(f"Langfuse post-generation error: {_lf_exc}")
+        # --- end Langfuse ---
 
     event_emitter = None
     event_caller = None
