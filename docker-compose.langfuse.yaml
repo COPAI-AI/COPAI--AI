@@ -6,6 +6,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://langfuse:${LANGFUSE_DB_PASSWORD}@127.0.0.1:5433/langfuse
       - CLICKHOUSE_URL=http://127.0.0.1:8123
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://127.0.0.1:9000
       - CLICKHOUSE_USER=langfuse
       - CLICKHOUSE_PASSWORD=${LANGFUSE_CLICKHOUSE_PASSWORD}
       - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
@@ -27,6 +28,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://langfuse:${LANGFUSE_DB_PASSWORD}@127.0.0.1:5433/langfuse
       - CLICKHOUSE_URL=http://127.0.0.1:8123
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://127.0.0.1:9000
       - CLICKHOUSE_USER=langfuse
       - CLICKHOUSE_PASSWORD=${LANGFUSE_CLICKHOUSE_PASSWORD}
       - SALT=${LANGFUSE_SALT}
