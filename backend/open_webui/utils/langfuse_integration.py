@@ -7,11 +7,10 @@ propagate to the caller or interrupt chat completions.
 """
 
 import asyncio
-import logging
 from datetime import datetime, timezone
 from typing import Optional
 
-log = logging.getLogger(__name__)
+from loguru import logger as log
 
 # Module-level singleton — set by initialize_langfuse_client()
 _langfuse_client = None
