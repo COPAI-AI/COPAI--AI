@@ -38,7 +38,6 @@ services:
       --gpu-memory-utilization 0.88
       --dtype bfloat16
       --trust-remote-code
-      --disable-log-requests
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
       interval: 30s
@@ -157,6 +156,7 @@ services:
       - CLICKHOUSE_DB=default
     volumes:
       - langfuse_clickhouse:/var/lib/clickhouse
+      - ./clickhouse/single-node.xml:/etc/clickhouse-server/config.d/single-node.xml:ro
     healthcheck:
       test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
       interval: 10s
@@ -258,6 +258,7 @@ services:
       - BLOB_STORAGE_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - BLOB_STORAGE_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
       - BLOB_STORAGE_BUCKET_NAME=langfuse
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
       - SALT=${LANGFUSE_SALT}
       - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}
 
