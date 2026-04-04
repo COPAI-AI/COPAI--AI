@@ -37,8 +37,6 @@ services:
       --max-model-len 65536
       --max-num-seqs 40
       --gpu-memory-utilization 0.88
-      --kv-offloading-size 20
-      --disable-hybrid-kv-cache-manager
       --dtype bfloat16
       --trust-remote-code
     healthcheck:
