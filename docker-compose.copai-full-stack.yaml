@@ -93,7 +93,7 @@ services:
       - QDRANT_URI=http://127.0.0.1:6333
 
       # Embedding — loaded locally via sentence-transformers
-      - RAG_EMBEDDING_ENGINE=sentence_transformers
+      - RAG_EMBEDDING_ENGINE=
       - RAG_EMBEDDING_MODEL=aisingapore/SEA-LION-E5-Embedding-600M
 
       # Content extraction — docling for digital PDFs
@@ -224,6 +224,7 @@ services:
       - BLOB_STORAGE_ACCESS_KEY_ID=${MINIO_ROOT_USER}
       - BLOB_STORAGE_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
       - BLOB_STORAGE_BUCKET_NAME=langfuse
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
       - NEXTAUTH_URL=http://127.0.0.1:3000
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - SALT=${LANGFUSE_SALT}
