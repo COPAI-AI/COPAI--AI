@@ -32,11 +32,11 @@
         "name": "currency",
         "label": "Currency",
         "type": "custom",
-        "query": "USD,KHR",
-        "current": {"value": "USD", "text": "USD"},
+        "query": "USD : 0, KHR : 1",
+        "current": {"value": "0", "text": "USD"},
         "options": [
-          {"value": "USD", "text": "USD", "selected": true},
-          {"value": "KHR", "text": "KHR", "selected": false}
+          {"value": "0", "text": "USD", "selected": true},
+          {"value": "1", "text": "KHR", "selected": false}
         ],
         "hide": 0
       }
@@ -70,15 +70,13 @@
     {
       "id": 4, "type": "stat", "title": "Cost Today",
       "gridPos": {"x": 12, "y": 0, "w": 4, "h": 4},
-      "fieldConfig": {"defaults": {"decimals": 2,
-        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]}}},
       "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
-        "expr": "(\n  increase(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[24h]) / 1e6 / 3600\n  + ($server_idle_watts * 24 / 1000)\n) * $electricity_price_usd * (1 + ($currency == \"KHR\") * ($usd_to_khr - 1))",
-        "legendFormat": "Cost"}],
       "fieldConfig": {"defaults": {"decimals": 2,
-        "thresholds": {"steps": [{"color": "green", "value": 0}]},
-        "mappings": []}}
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]},
+        "mappings": []}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "(\n  increase(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[24h]) / 1e6 / 3600\n  + ($server_idle_watts * 24 / 1000)\n) * $electricity_price_usd * (1 + $currency * ($usd_to_khr - 1))",
+        "legendFormat": "Cost"}]
     },
     {
       "id": 5, "type": "stat", "title": "Projected Monthly Cost",
@@ -86,7 +84,7 @@
       "fieldConfig": {"defaults": {"decimals": 2,
         "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 100}, {"color": "red", "value": 300}]}}},
       "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
-        "expr": "(\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000\n) * 24 * 30 * $electricity_price_usd * (1 + ($currency == \"KHR\") * ($usd_to_khr - 1))",
+        "expr": "(\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000\n) * 24 * 30 * $electricity_price_usd * (1 + $currency * ($usd_to_khr - 1))",
         "legendFormat": "Monthly"}]
     },
     {
@@ -104,8 +102,7 @@
       "fieldConfig": {"defaults": {"unit": "watt"}},
       "targets": [
         {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_POWER_USAGE", "legendFormat": "GPU Power"},
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_POWER_USAGE + $server_idle_watts", "legendFormat": "Total Est."},
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_POWER_LIMIT", "legendFormat": "GPU TDP Limit"}
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_POWER_USAGE + $server_idle_watts", "legendFormat": "Total Est."}
       ]
     },
     {
@@ -128,13 +125,13 @@
       "fieldConfig": {"defaults": {}},
       "targets": [
         {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_GPU_UTIL", "legendFormat": "GPU Util %"},
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_POWER_USAGE / DCGM_FI_DEV_POWER_LIMIT * 100", "legendFormat": "Power % of TDP"}
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_POWER_USAGE / 300 * 100", "legendFormat": "Power % of 300W TDP"}
       ]
     },
     {
       "id": 10, "type": "timeseries", "title": "Cost Per Hour (running rate)",
       "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
-      "fieldConfig": {"defaults": {"decimals": 4, "unit": "currencyUSD"}},
+      "fieldConfig": {"defaults": {"decimals": 4}},
       "targets": [
         {"datasource": {"type": "prometheus", "uid": "prometheus"},
           "expr": "(DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd",
@@ -146,12 +143,12 @@
     },
     {
       "id": 11, "type": "stat", "title": "Cost Per 1000 Tokens (USD)",
-      "description": "Energy cost to generate 1000 tokens. Lower = more efficient.",
+      "description": "Energy cost to generate 1000 tokens. Lower = more efficient. Only shows during active inference.",
       "gridPos": {"x": 0, "y": 20, "w": 8, "h": 5},
       "fieldConfig": {"defaults": {"decimals": 6,
         "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 0.001}, {"color": "red", "value": 0.01}]}}},
       "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
-        "expr": "(\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd / 3600\n) / clamp_min(rate(vllm:generation_tokens_total[5m]), 0.001) * 1000",
+        "expr": "(\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd / 3600\n) / clamp_min(sum(rate(vllm:generation_tokens_total[5m])), 0.001) * 1000",
         "legendFormat": "USD per 1k tokens"}]
     },
     {
@@ -160,7 +157,7 @@
       "fieldConfig": {"defaults": {"decimals": 2,
         "thresholds": {"steps": [{"color": "green", "value": 0}]}}},
       "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
-        "expr": "(\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd * $usd_to_khr / 3600\n) / clamp_min(rate(vllm:generation_tokens_total[5m]), 0.001) * 1000",
+        "expr": "(\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd * $usd_to_khr / 3600\n) / clamp_min(sum(rate(vllm:generation_tokens_total[5m])), 0.001) * 1000",
         "legendFormat": "KHR per 1k tokens"}]
     },
     {
@@ -170,7 +167,7 @@
       "fieldConfig": {"defaults": {"decimals": 1, "unit": "percent",
         "thresholds": {"steps": [{"color": "red", "value": 0}, {"color": "yellow", "value": 50}, {"color": "green", "value": 80}]}}},
       "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
-        "expr": "(1 - (\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd / 3600\n  / clamp_min(rate(vllm:generation_tokens_total[5m]), 0.001) * 1000\n) / 0.015) * 100",
+        "expr": "(1 - (\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd / 3600\n  / clamp_min(sum(rate(vllm:generation_tokens_total[5m])), 0.001) * 1000\n) / 0.015) * 100",
         "legendFormat": "% cheaper than GPT-4o"}]
     }
   ]
