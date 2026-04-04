@@ -28,8 +28,9 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - HF_HOME=/root/.cache/huggingface
+      - GLOO_SOCKET_IFNAME=lo
     command: >
-      --model /models/Gemma-SEA-LION-v4-27B-IT-FP8-Dynamic
+      /models/Gemma-SEA-LION-v4-27B-IT-FP8-Dynamic
       --served-model-name gemma-sealion-v4
       --host 0.0.0.0
       --port 8000
@@ -104,6 +105,9 @@ services:
       - RAG_SYSTEM_CONTEXT=true
       - RAG_EMBEDDING_BATCH_SIZE=16
       - ENABLE_ASYNC_EMBEDDING=true
+
+      # HTTP client identity
+      - USER_AGENT=COPAI/1.0
 
       # Langfuse tracing
       - ENABLE_LANGFUSE=true
