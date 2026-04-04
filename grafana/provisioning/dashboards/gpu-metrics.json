@@ -11,36 +11,36 @@
       "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
       "fieldConfig": {"defaults": {"min": 0, "max": 100, "unit": "percent",
         "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 70}, {"color": "red", "value": 90}]}}},
-      "targets": [{"datasource": "Prometheus", "expr": "DCGM_FI_DEV_GPU_UTIL", "legendFormat": "GPU {{gpu}}"}]
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_GPU_UTIL", "legendFormat": "GPU {{gpu}}"}]
     },
     {
       "id": 2, "type": "gauge", "title": "GPU Memory Usage %",
       "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
       "fieldConfig": {"defaults": {"min": 0, "max": 100, "unit": "percent",
         "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 75}, {"color": "red", "value": 90}]}}},
-      "targets": [{"datasource": "Prometheus", "expr": "DCGM_FI_DEV_MEM_COPY_UTIL", "legendFormat": "Mem Copy Util {{gpu}}"}]
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_MEM_COPY_UTIL", "legendFormat": "Mem Copy Util {{gpu}}"}]
     },
     {
       "id": 3, "type": "stat", "title": "GPU Memory Used",
       "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
       "fieldConfig": {"defaults": {"unit": "decmbytes",
         "thresholds": {"steps": [{"color": "blue", "value": 0}]}}},
-      "targets": [{"datasource": "Prometheus", "expr": "DCGM_FI_DEV_FB_USED", "legendFormat": "Used MiB"}]
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_FB_USED", "legendFormat": "Used MiB"}]
     },
     {
       "id": 4, "type": "stat", "title": "GPU Memory Free",
       "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
       "fieldConfig": {"defaults": {"unit": "decmbytes",
         "thresholds": {"steps": [{"color": "green", "value": 0}]}}},
-      "targets": [{"datasource": "Prometheus", "expr": "DCGM_FI_DEV_FB_FREE", "legendFormat": "Free MiB"}]
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_FB_FREE", "legendFormat": "Free MiB"}]
     },
     {
       "id": 5, "type": "timeseries", "title": "GPU Utilization Over Time",
       "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}},
       "targets": [
-        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_GPU_UTIL", "legendFormat": "GPU Util {{gpu}}"},
-        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_MEM_COPY_UTIL", "legendFormat": "Mem Util {{gpu}}"}
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_GPU_UTIL", "legendFormat": "GPU Util {{gpu}}"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_MEM_COPY_UTIL", "legendFormat": "Mem Util {{gpu}}"}
       ]
     },
     {
@@ -48,8 +48,8 @@
       "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "decmbytes"}},
       "targets": [
-        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_FB_USED", "legendFormat": "Used MiB"},
-        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_FB_FREE", "legendFormat": "Free MiB"}
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_FB_USED", "legendFormat": "Used MiB"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_FB_FREE", "legendFormat": "Free MiB"}
       ]
     },
     {
@@ -57,15 +57,15 @@
       "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "celsius",
         "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 75}, {"color": "red", "value": 85}]}}},
-      "targets": [{"datasource": "Prometheus", "expr": "DCGM_FI_DEV_GPU_TEMP", "legendFormat": "Temp GPU {{gpu}}"}]
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_GPU_TEMP", "legendFormat": "Temp GPU {{gpu}}"}]
     },
     {
       "id": 8, "type": "timeseries", "title": "GPU Power Usage (W)",
       "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "watt"}},
       "targets": [
-        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_POWER_USAGE", "legendFormat": "Power {{gpu}}"},
-        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_POWER_LIMIT", "legendFormat": "Limit {{gpu}}"}
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_POWER_USAGE", "legendFormat": "Power {{gpu}}"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_POWER_LIMIT", "legendFormat": "Limit {{gpu}}"}
       ]
     }
   ]
