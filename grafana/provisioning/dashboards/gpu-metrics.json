@@ -4,7 +4,8 @@
   "tags": ["copai", "gpu"],
   "timezone": "browser",
   "schemaVersion": 38,
-  "refresh": "15s",
+  "refresh": "5s",
+  "time": {"from": "now-30m", "to": "now"},
   "panels": [
     {
       "id": 1, "type": "gauge", "title": "GPU Utilization %",
