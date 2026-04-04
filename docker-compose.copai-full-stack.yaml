@@ -65,6 +65,7 @@ services:
       args:
         OLLAMA_BASE_URL: '/ollama'
       dockerfile: Dockerfile
+      network: host
     image: copai-webui:full-stack
     container_name: copai-webui
     network_mode: host
@@ -117,6 +118,7 @@ services:
   extraction:
     build:
       context: ./extraction
+      network: host
     container_name: copai-extraction
     network_mode: host
     restart: unless-stopped
