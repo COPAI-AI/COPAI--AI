@@ -86,6 +86,7 @@ services:
       # Auth
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
       - WEBUI_URL=${WEBUI_URL}
+      - CORS_ALLOW_ORIGIN=${WEBUI_URL}
       - PORT=${OPEN_WEBUI_PORT:-8080}
 
       # Vector store
