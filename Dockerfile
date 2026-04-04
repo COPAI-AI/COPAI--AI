@@ -90,6 +90,16 @@ ENV HF_HOME="/app/backend/data/cache/embedding/models"
 
 WORKDIR /app/backend
 
+# Increase apt retry attempts for slow/unreliable mirrors on HPC networks
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
+    echo 'Acquire::http::Timeout "120";' >> /etc/apt/apt.conf.d/80-retries && \
+    echo 'Acquire::https::Timeout "120";' >> /etc/apt/apt.conf.d/80-retries
+
+# Switch to Hong Kong Debian mirror (faster from Cambodia ministry network)
+RUN echo "deb http://ftp.hk.debian.org/debian bookworm main" > /etc/apt/sources.list && \
+    echo "deb http://ftp.hk.debian.org/debian bookworm-updates main" >> /etc/apt/sources.list && \
+    echo "deb http://security.debian.org/debian-security bookworm-security main" >> /etc/apt/sources.list
+
 ENV HOME=/root
 # Create user and group if not root
 RUN if [ $UID -ne 0 ]; then \
