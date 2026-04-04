@@ -1,18 +1,16 @@
 """
-Khmer/English scanned PDF extraction service.
+Khmer/English PDF extraction service.
 Renders PDF pages as images, sends to vLLM vision for OCR.
-Use for scanned PDFs before uploading to Open WebUI.
 
-Usage:
-  curl -X POST http://localhost:8002/extract \
-    -F "file=@scanned_doc.pdf" \
-    --output extracted.txt
+Two modes:
+  1. Manual: POST /extract  — returns plain text
+  2. Auto:   PUT  /tika     — Tika-compatible API for Open WebUI integration
 """
 
 import os
 import base64
 import requests
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from pdf2image import convert_from_bytes
 from PIL import Image
@@ -61,17 +59,7 @@ def extract_page(img: Image.Image) -> str:
     return resp.json()["choices"][0]["message"]["content"]
 
 
-@app.get("/health")
-def health():
-    return {"status": "ok", "model": MODEL_NAME}
-
-
-@app.post("/extract", response_class=PlainTextResponse)
-async def extract(file: UploadFile = File(...)):
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(400, "Only PDF files supported")
-
-    content = await file.read()
+def extract_pdf_bytes(content: bytes) -> str:
     try:
         images = convert_from_bytes(content, dpi=200)
     except Exception as e:
@@ -86,3 +74,45 @@ async def extract(file: UploadFile = File(...)):
             pages.append(f"--- Page {i+1} ---\n\n[Extraction failed: {e}]")
 
     return "\n\n".join(pages)
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "model": MODEL_NAME}
+
+
+# ── Manual endpoint ────────────────────────────────────────────────────────────
+@app.post("/extract", response_class=PlainTextResponse)
+async def extract(file: UploadFile = File(...)):
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(400, "Only PDF files supported")
+    content = await file.read()
+    return extract_pdf_bytes(content)
+
+
+# ── Tika-compatible endpoint for Open WebUI ────────────────────────────────────
+# Open WebUI sends: PUT /tika with raw file bytes in request body
+# Content-Type header tells us the file type
+# Returns: plain text
+@app.put("/tika", response_class=PlainTextResponse)
+async def tika(request: Request):
+    content_type = request.headers.get("content-type", "")
+    content = await request.body()
+
+    if not content:
+        raise HTTPException(400, "Empty request body")
+
+    # Only process PDFs — pass other types back as-is (Open WebUI handles them)
+    if "pdf" not in content_type.lower():
+        try:
+            return content.decode("utf-8", errors="replace")
+        except Exception:
+            return ""
+
+    return extract_pdf_bytes(content)
+
+
+# ── Tika meta endpoint (Open WebUI checks this) ────────────────────────────────
+@app.get("/tika", response_class=PlainTextResponse)
+async def tika_meta():
+    return "This is Tika Server (COPAI custom extraction). Apache Tika 2.0.0."

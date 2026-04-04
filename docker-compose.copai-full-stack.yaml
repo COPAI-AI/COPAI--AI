@@ -98,8 +98,9 @@ services:
       - RAG_EMBEDDING_ENGINE=
       - RAG_EMBEDDING_MODEL=aisingapore/SEA-LION-E5-Embedding-600M
 
-      # Content extraction — docling for digital PDFs
-      - RAG_CONTENT_EXTRACTION_ENGINE=docling
+      # Content extraction — custom Khmer vision extraction via vLLM
+      - RAG_CONTENT_EXTRACTION_ENGINE=tika
+      - TIKA_SERVER_URL=http://127.0.0.1:8002
 
       # RAG performance
       - RAG_SYSTEM_CONTEXT=true
