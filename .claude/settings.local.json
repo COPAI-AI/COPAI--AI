@@ -16,7 +16,11 @@
       "Bash(find:*)",
       "Bash(openssl rand:*)",
       "WebFetch(domain:langfuse.com)",
-      "WebFetch(domain:docs.langfuse.com)"
+      "WebFetch(domain:docs.langfuse.com)",
+      "Read(//etc/**)",
+      "Bash(sudo find:*)",
+      "Bash(sudo nginx:*)",
+      "Bash(nginx -v)"
     ]
   }
 }
