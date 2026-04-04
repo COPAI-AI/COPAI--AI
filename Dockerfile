@@ -96,7 +96,9 @@ RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries && \
     echo 'Acquire::https::Timeout "120";' >> /etc/apt/apt.conf.d/80-retries
 
 # Switch to Hong Kong Debian mirror (faster from Cambodia ministry network)
-RUN echo "deb http://ftp.hk.debian.org/debian bookworm main" > /etc/apt/sources.list && \
+# Also clear sources.list.d/ to prevent base image entries from overriding our mirror
+RUN rm -f /etc/apt/sources.list.d/*.list && \
+    echo "deb http://ftp.hk.debian.org/debian bookworm main" > /etc/apt/sources.list && \
     echo "deb http://ftp.hk.debian.org/debian bookworm-updates main" >> /etc/apt/sources.list && \
     echo "deb http://ftp.hk.debian.org/debian-security bookworm-security main" >> /etc/apt/sources.list
 
