@@ -112,6 +112,24 @@ async def tika(request: Request):
     return extract_pdf_bytes(content)
 
 
+# ── Tika /tika/text endpoint (Open WebUI calls this path) ─────────────────────
+@app.put("/tika/text", response_class=PlainTextResponse)
+async def tika_text(request: Request):
+    content_type = request.headers.get("content-type", "")
+    content = await request.body()
+
+    if not content:
+        raise HTTPException(400, "Empty request body")
+
+    if "pdf" not in content_type.lower():
+        try:
+            return content.decode("utf-8", errors="replace")
+        except Exception:
+            return ""
+
+    return extract_pdf_bytes(content)
+
+
 # ── Tika meta endpoint (Open WebUI checks this) ────────────────────────────────
 @app.get("/tika", response_class=PlainTextResponse)
 async def tika_meta():
