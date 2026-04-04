@@ -1,0 +1,177 @@
+{
+  "title": "Energy & Cost Monitor",
+  "uid": "copai-energy",
+  "tags": ["copai", "energy", "cost"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "30s",
+  "templating": {
+    "list": [
+      {
+        "name": "electricity_price_usd",
+        "label": "Electricity (USD/kWh)",
+        "type": "textbox",
+        "current": {"value": "0.10"},
+        "hide": 0
+      },
+      {
+        "name": "usd_to_khr",
+        "label": "USD → KHR Rate",
+        "type": "textbox",
+        "current": {"value": "4100"},
+        "hide": 0
+      },
+      {
+        "name": "server_idle_watts",
+        "label": "Server Idle Watts (non-GPU)",
+        "type": "textbox",
+        "current": {"value": "200"},
+        "hide": 0
+      },
+      {
+        "name": "currency",
+        "label": "Currency",
+        "type": "custom",
+        "query": "USD,KHR",
+        "current": {"value": "USD", "text": "USD"},
+        "options": [
+          {"value": "USD", "text": "USD", "selected": true},
+          {"value": "KHR", "text": "KHR", "selected": false}
+        ],
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Live GPU Power (W)",
+      "gridPos": {"x": 0, "y": 0, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "watt",
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 200}, {"color": "red", "value": 300}]}}},
+      "targets": [{"datasource": "Prometheus", "expr": "DCGM_FI_DEV_POWER_USAGE", "legendFormat": "GPU W"}]
+    },
+    {
+      "id": 2, "type": "stat", "title": "Total System Power Est. (W)",
+      "description": "GPU + server idle estimate",
+      "gridPos": {"x": 4, "y": 0, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "watt",
+        "thresholds": {"steps": [{"color": "blue", "value": 0}, {"color": "orange", "value": 400}, {"color": "red", "value": 600}]}}},
+      "targets": [{"datasource": "Prometheus", "expr": "DCGM_FI_DEV_POWER_USAGE + $server_idle_watts", "legendFormat": "Total W"}]
+    },
+    {
+      "id": 3, "type": "stat", "title": "Energy Used Today (kWh)",
+      "gridPos": {"x": 8, "y": 0, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "kwatth", "decimals": 3,
+        "thresholds": {"steps": [{"color": "blue", "value": 0}]}}},
+      "targets": [{"datasource": "Prometheus",
+        "expr": "increase(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[24h]) / 1e6 / 3600 + ($server_idle_watts * 24 / 1000)",
+        "legendFormat": "kWh today"}]
+    },
+    {
+      "id": 4, "type": "stat", "title": "Cost Today",
+      "gridPos": {"x": 12, "y": 0, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"decimals": 2,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 5}, {"color": "red", "value": 20}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"datasource": "Prometheus",
+        "expr": "(\n  increase(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[24h]) / 1e6 / 3600\n  + ($server_idle_watts * 24 / 1000)\n) * $electricity_price_usd * (1 + ($currency == \"KHR\") * ($usd_to_khr - 1))",
+        "legendFormat": "Cost"}],
+      "fieldConfig": {"defaults": {"decimals": 2,
+        "thresholds": {"steps": [{"color": "green", "value": 0}]},
+        "mappings": []}}
+    },
+    {
+      "id": 5, "type": "stat", "title": "Projected Monthly Cost",
+      "gridPos": {"x": 16, "y": 0, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"decimals": 2,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 100}, {"color": "red", "value": 300}]}}},
+      "targets": [{"datasource": "Prometheus",
+        "expr": "(\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000\n) * 24 * 30 * $electricity_price_usd * (1 + ($currency == \"KHR\") * ($usd_to_khr - 1))",
+        "legendFormat": "Monthly"}]
+    },
+    {
+      "id": 6, "type": "stat", "title": "GPU Idle Baseline (W)",
+      "gridPos": {"x": 20, "y": 0, "w": 4, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "watt",
+        "thresholds": {"steps": [{"color": "blue", "value": 0}]}}},
+      "targets": [{"datasource": "Prometheus",
+        "expr": "min_over_time(DCGM_FI_DEV_POWER_USAGE[1h])",
+        "legendFormat": "Idle baseline"}]
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "Power Draw Over Time (W)",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "watt"}},
+      "targets": [
+        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_POWER_USAGE", "legendFormat": "GPU Power"},
+        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_POWER_USAGE + $server_idle_watts", "legendFormat": "Total Est."},
+        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_POWER_LIMIT", "legendFormat": "GPU TDP Limit"}
+      ]
+    },
+    {
+      "id": 8, "type": "timeseries", "title": "Cumulative Cost Over Time",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"decimals": 4}},
+      "targets": [
+        {"datasource": "Prometheus",
+          "expr": "(\n  increase(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[$__range]) / 1e6 / 3600\n  + ($server_idle_watts * ($__range_s / 3600) / 1000)\n) * $electricity_price_usd",
+          "legendFormat": "Cumulative USD"},
+        {"datasource": "Prometheus",
+          "expr": "(\n  increase(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[$__range]) / 1e6 / 3600\n  + ($server_idle_watts * ($__range_s / 3600) / 1000)\n) * $electricity_price_usd * $usd_to_khr",
+          "legendFormat": "Cumulative KHR"}
+      ]
+    },
+    {
+      "id": 9, "type": "timeseries", "title": "GPU Utilization vs Power (Efficiency)",
+      "description": "High utilization at same power = efficient. Low util at high power = idle waste.",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {}},
+      "targets": [
+        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_GPU_UTIL", "legendFormat": "GPU Util %"},
+        {"datasource": "Prometheus", "expr": "DCGM_FI_DEV_POWER_USAGE / DCGM_FI_DEV_POWER_LIMIT * 100", "legendFormat": "Power % of TDP"}
+      ]
+    },
+    {
+      "id": 10, "type": "timeseries", "title": "Cost Per Hour (running rate)",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"decimals": 4, "unit": "currencyUSD"}},
+      "targets": [
+        {"datasource": "Prometheus",
+          "expr": "(DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd",
+          "legendFormat": "USD/hr"},
+        {"datasource": "Prometheus",
+          "expr": "(DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd * $usd_to_khr",
+          "legendFormat": "KHR/hr"}
+      ]
+    },
+    {
+      "id": 11, "type": "stat", "title": "Cost Per 1000 Tokens (USD)",
+      "description": "Energy cost to generate 1000 tokens. Lower = more efficient.",
+      "gridPos": {"x": 0, "y": 20, "w": 8, "h": 5},
+      "fieldConfig": {"defaults": {"decimals": 6,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 0.001}, {"color": "red", "value": 0.01}]}}},
+      "targets": [{"datasource": "Prometheus",
+        "expr": "(\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd / 3600\n) / clamp_min(rate(vllm:generation_tokens_total[5m]), 0.001) * 1000",
+        "legendFormat": "USD per 1k tokens"}]
+    },
+    {
+      "id": 12, "type": "stat", "title": "Cost Per 1000 Tokens (KHR)",
+      "gridPos": {"x": 8, "y": 20, "w": 8, "h": 5},
+      "fieldConfig": {"defaults": {"decimals": 2,
+        "thresholds": {"steps": [{"color": "green", "value": 0}]}}},
+      "targets": [{"datasource": "Prometheus",
+        "expr": "(\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd * $usd_to_khr / 3600\n) / clamp_min(rate(vllm:generation_tokens_total[5m]), 0.001) * 1000",
+        "legendFormat": "KHR per 1k tokens"}]
+    },
+    {
+      "id": 13, "type": "stat", "title": "vs GPT-4o API (USD/1k tokens = $0.015)",
+      "description": "How much cheaper is running locally vs GPT-4o API pricing?",
+      "gridPos": {"x": 16, "y": 20, "w": 8, "h": 5},
+      "fieldConfig": {"defaults": {"decimals": 1, "unit": "percent",
+        "thresholds": {"steps": [{"color": "red", "value": 0}, {"color": "yellow", "value": 50}, {"color": "green", "value": 80}]}}},
+      "targets": [{"datasource": "Prometheus",
+        "expr": "(1 - (\n  (DCGM_FI_DEV_POWER_USAGE + $server_idle_watts) / 1000 * $electricity_price_usd / 3600\n  / clamp_min(rate(vllm:generation_tokens_total[5m]), 0.001) * 1000\n) / 0.015) * 100",
+        "legendFormat": "% cheaper than GPT-4o"}]
+    }
+  ]
+}

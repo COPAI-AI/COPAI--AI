@@ -288,6 +288,8 @@ services:
     container_name: copai-dcgm-exporter
     network_mode: host
     restart: unless-stopped
+    cap_add:
+      - SYS_ADMIN
     deploy:
       resources:
         reservations:
