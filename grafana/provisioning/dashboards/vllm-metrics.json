@@ -37,7 +37,7 @@
       "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "reqps"}},
       "targets": [
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(vllm:request_success_total[2m])", "legendFormat": "Success/s"}
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(vllm:request_success_total[1m])", "legendFormat": "Success/s"}
       ]
     },
     {
@@ -45,8 +45,8 @@
       "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "short"}},
       "targets": [
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(vllm:prompt_tokens_total[2m])", "legendFormat": "Prompt tokens/s"},
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(vllm:generation_tokens_total[2m])", "legendFormat": "Generation tokens/s"}
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(vllm:prompt_tokens_total[1m])", "legendFormat": "Prompt tokens/s"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(vllm:generation_tokens_total[1m])", "legendFormat": "Generation tokens/s"}
       ]
     },
     {
