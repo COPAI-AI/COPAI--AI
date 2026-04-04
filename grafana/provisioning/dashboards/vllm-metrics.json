@@ -77,6 +77,64 @@
         {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "vllm:num_requests_running", "legendFormat": "Running"},
         {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "vllm:num_requests_waiting", "legendFormat": "Waiting"}
       ]
+    },
+    {
+      "id": 10, "type": "timeseries", "title": "Prefix Cache Hit Rate (%)",
+      "description": "Higher = more reuse of previously computed KV cache. Low hit rate means users are sending mostly unique prompts.",
+      "gridPos": {"x": 0, "y": 28, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100,
+        "thresholds": {"steps": [{"color": "red", "value": 0}, {"color": "yellow", "value": 50}, {"color": "green", "value": 80}]},
+        "custom": {"fillOpacity": 15, "lineWidth": 2}}},
+      "targets": [
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "rate(vllm:prefix_cache_hits_total[5m]) / clamp_min(rate(vllm:prefix_cache_queries_total[5m]), 0.001) * 100",
+          "legendFormat": "Hit Rate %"}
+      ]
+    },
+    {
+      "id": 11, "type": "timeseries", "title": "Request Latency Breakdown (p50)",
+      "description": "Shows where time is spent per request: waiting in queue, prefill (processing prompt), and decode (generating tokens).",
+      "gridPos": {"x": 12, "y": 28, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "s", "custom": {"fillOpacity": 10, "lineWidth": 2, "stacking": {"mode": "normal"}}}},
+      "targets": [
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "histogram_quantile(0.5, rate(vllm:request_queue_time_seconds_bucket[5m]))",
+          "legendFormat": "Queue Wait"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "histogram_quantile(0.5, rate(vllm:request_prefill_time_seconds_bucket[5m]))",
+          "legendFormat": "Prefill"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "histogram_quantile(0.5, rate(vllm:request_decode_time_seconds_bucket[5m]))",
+          "legendFormat": "Decode"}
+      ]
+    },
+    {
+      "id": 12, "type": "timeseries", "title": "Inter-Token Latency (Streaming Speed)",
+      "description": "Time between consecutive tokens streamed to the user. Lower = faster perceived output. p95 shows worst-case streaming jitter.",
+      "gridPos": {"x": 0, "y": 36, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "s", "custom": {"lineWidth": 2}}},
+      "targets": [
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "histogram_quantile(0.5, rate(vllm:inter_token_latency_seconds_bucket[5m]))",
+          "legendFormat": "p50"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "histogram_quantile(0.95, rate(vllm:inter_token_latency_seconds_bucket[5m]))",
+          "legendFormat": "p95"}
+      ]
+    },
+    {
+      "id": 13, "type": "stat", "title": "Request Preemptions (5m)",
+      "description": "Requests evicted mid-generation due to GPU KV cache pressure. Non-zero = GPU memory is being over-committed.",
+      "gridPos": {"x": 12, "y": 36, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"decimals": 0,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 1}, {"color": "red", "value": 5}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "area"},
+      "targets": [
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "increase(vllm:num_preemptions_total[5m])",
+          "legendFormat": "Preemptions"}
+      ]
     }
   ]
 }

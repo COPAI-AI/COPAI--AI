@@ -95,12 +95,48 @@
         "expr": "histogram_quantile(0.5, rate(vllm:e2e_request_latency_seconds_bucket[5m]))",
         "legendFormat": "p50"}]
     },
+    {
+      "id": 18, "type": "stat", "title": "Cache Hit Rate (%)",
+      "description": "Prefix KV cache hit rate. High = prompts share common prefixes (efficient). Low = mostly unique prompts.",
+      "gridPos": {"x": 0, "y": 10, "w": 8, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "decimals": 1,
+        "thresholds": {"steps": [{"color": "red", "value": 0}, {"color": "yellow", "value": 50}, {"color": "green", "value": 80}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "none"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "rate(vllm:prefix_cache_hits_total[5m]) / clamp_min(rate(vllm:prefix_cache_queries_total[5m]), 0.001) * 100",
+        "legendFormat": "Hit Rate %"}]
+    },
+    {
+      "id": 19, "type": "stat", "title": "Preemptions (5m)",
+      "description": "Requests evicted mid-generation. Non-zero signals GPU KV cache over-commitment.",
+      "gridPos": {"x": 8, "y": 10, "w": 8, "h": 4},
+      "fieldConfig": {"defaults": {"decimals": 0,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 1}, {"color": "red", "value": 5}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "none"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "increase(vllm:num_preemptions_total[5m])",
+        "legendFormat": "Preemptions"}]
+    },
+    {
+      "id": 20, "type": "stat", "title": "Inter-Token Latency p50",
+      "description": "Median time between streamed tokens. Directly reflects perceived output speed for users.",
+      "gridPos": {"x": 16, "y": 10, "w": 8, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "s", "decimals": 3,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 0.05}, {"color": "red", "value": 0.1}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "none"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "histogram_quantile(0.5, rate(vllm:inter_token_latency_seconds_bucket[5m]))",
+        "legendFormat": "ITL p50"}]
+    },
 
-    {"id": 102, "type": "row", "title": "GPU Charts", "gridPos": {"x": 0, "y": 10, "w": 24, "h": 1}, "collapsed": false},
+    {"id": 102, "type": "row", "title": "GPU Charts", "gridPos": {"x": 0, "y": 14, "w": 24, "h": 1}, "collapsed": false},
 
     {
       "id": 13, "type": "timeseries", "title": "GPU Utilization & Memory Over Time",
-      "gridPos": {"x": 0, "y": 11, "w": 12, "h": 8},
+      "gridPos": {"x": 0, "y": 15, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}},
       "targets": [
         {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_GPU_UTIL", "legendFormat": "GPU Util %"},
@@ -109,7 +145,7 @@
     },
     {
       "id": 14, "type": "timeseries", "title": "GPU Temperature & Power",
-      "gridPos": {"x": 12, "y": 11, "w": 12, "h": 8},
+      "gridPos": {"x": 12, "y": 15, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {}},
       "targets": [
         {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_GPU_TEMP", "legendFormat": "Temp °C"},
@@ -117,11 +153,11 @@
       ]
     },
 
-    {"id": 103, "type": "row", "title": "vLLM Charts", "gridPos": {"x": 0, "y": 19, "w": 24, "h": 1}, "collapsed": false},
+    {"id": 103, "type": "row", "title": "vLLM Charts", "gridPos": {"x": 0, "y": 23, "w": 24, "h": 1}, "collapsed": false},
 
     {
       "id": 15, "type": "timeseries", "title": "Token Throughput (tokens/s)",
-      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "gridPos": {"x": 0, "y": 24, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "short"}},
       "targets": [
         {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(vllm:prompt_tokens_total[1m])", "legendFormat": "Input tokens/s"},
@@ -130,7 +166,7 @@
     },
     {
       "id": 16, "type": "timeseries", "title": "Response Latency",
-      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+      "gridPos": {"x": 12, "y": 24, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "s"}},
       "targets": [
         {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "histogram_quantile(0.5, rate(vllm:e2e_request_latency_seconds_bucket[5m]))", "legendFormat": "E2E p50"},
@@ -141,7 +177,7 @@
     },
     {
       "id": 17, "type": "timeseries", "title": "Active Requests Over Time",
-      "gridPos": {"x": 0, "y": 28, "w": 24, "h": 6},
+      "gridPos": {"x": 0, "y": 32, "w": 24, "h": 6},
       "fieldConfig": {"defaults": {"unit": "short"}},
       "targets": [
         {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "vllm:num_requests_running", "legendFormat": "Running"},

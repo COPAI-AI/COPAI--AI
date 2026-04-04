@@ -10,19 +10,19 @@
       "id": 1, "type": "stat", "title": "Total Collections",
       "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
       "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "blue", "value": 0}]}}},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "qdrant_collections_total", "legendFormat": "Collections"}]
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "collections_total", "legendFormat": "Collections"}]
     },
     {
       "id": 2, "type": "stat", "title": "Total Vectors",
       "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
       "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "blue", "value": 0}]}}},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "qdrant_vectors_total", "legendFormat": "Vectors"}]
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "collections_vector_total", "legendFormat": "Vectors"}]
     },
     {
-      "id": 3, "type": "stat", "title": "gRPC Requests Total",
+      "id": 3, "type": "timeseries", "title": "Collection CPU Usage (ms/s)",
       "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
-      "fieldConfig": {"defaults": {"thresholds": {"steps": [{"color": "blue", "value": 0}]}}},
-      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "sum(grpc_server_handled_total)", "legendFormat": "Total"}]
+      "fieldConfig": {"defaults": {"unit": "ms", "custom": {"drawStyle": "line", "fillOpacity": 10}}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(collection_hardware_metric_cpu[2m]) / 1e6", "legendFormat": "{{id}}"}]
     },
     {
       "id": 4, "type": "stat", "title": "REST Requests Total",
@@ -35,8 +35,7 @@
       "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "reqps"}},
       "targets": [
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(rest_responses_total[2m])", "legendFormat": "REST {{method}} {{status}}"},
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(grpc_server_handled_total[2m])", "legendFormat": "gRPC {{grpc_method}}"}
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(rest_responses_total[2m])", "legendFormat": "{{method}} {{endpoint}} {{status}}"}
       ]
     },
     {
@@ -44,9 +43,27 @@
       "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
       "fieldConfig": {"defaults": {"unit": "s"}},
       "targets": [
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "histogram_quantile(0.5, rate(rest_response_time_seconds_bucket[5m]))", "legendFormat": "p50"},
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "histogram_quantile(0.95, rate(rest_response_time_seconds_bucket[5m]))", "legendFormat": "p95"},
-        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "histogram_quantile(0.99, rate(rest_response_time_seconds_bucket[5m]))", "legendFormat": "p99"}
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "histogram_quantile(0.5, rate(rest_responses_duration_seconds_bucket[5m]))", "legendFormat": "p50"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "histogram_quantile(0.95, rate(rest_responses_duration_seconds_bucket[5m]))", "legendFormat": "p95"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "histogram_quantile(0.99, rate(rest_responses_duration_seconds_bucket[5m]))", "legendFormat": "p99"}
+      ]
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "Qdrant Memory",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "bytes", "custom": {"drawStyle": "line", "fillOpacity": 10}}},
+      "targets": [
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "memory_active_bytes", "legendFormat": "Active"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "memory_resident_bytes", "legendFormat": "Resident"}
+      ]
+    },
+    {
+      "id": 8, "type": "timeseries", "title": "Vector I/O Rate",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "Bps", "custom": {"drawStyle": "line", "fillOpacity": 10}}},
+      "targets": [
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(collection_hardware_metric_vector_io_write[2m])", "legendFormat": "write {{id}}"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "rate(collection_hardware_metric_vector_io_read[2m])", "legendFormat": "read {{id}}"}
       ]
     }
   ]

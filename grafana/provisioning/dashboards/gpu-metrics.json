@@ -67,6 +67,26 @@
       "targets": [
         {"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_POWER_USAGE", "legendFormat": "Power {{gpu}}"}
       ]
+    },
+    {
+      "id": 9, "type": "stat", "title": "SM Clock (MHz)",
+      "description": "Streaming Multiprocessor clock frequency. Drops below boost clock when GPU is thermally or power throttled.",
+      "gridPos": {"x": 0, "y": 20, "w": 6, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "mhz", "decimals": 0,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 1000}, {"color": "green", "value": 1500}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "none"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_SM_CLOCK", "legendFormat": "SM Clock GPU {{gpu}}"}]
+    },
+    {
+      "id": 10, "type": "stat", "title": "Memory Copy Utilization (%)",
+      "description": "GPU memory copy engine utilization. High values indicate memory bandwidth saturation — data movement is a bottleneck.",
+      "gridPos": {"x": 6, "y": 20, "w": 6, "h": 4},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 50}, {"color": "red", "value": 80}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "none"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"}, "expr": "DCGM_FI_DEV_MEM_COPY_UTIL", "legendFormat": "Mem Copy Util {{gpu}}"}]
     }
   ]
 }
