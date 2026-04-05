@@ -98,9 +98,9 @@ services:
       - RAG_EMBEDDING_ENGINE=
       - RAG_EMBEDDING_MODEL=aisingapore/SEA-LION-E5-Embedding-600M
 
-      # Content extraction — custom Khmer vision extraction via vLLM
-      - RAG_CONTENT_EXTRACTION_ENGINE=tika
-      - TIKA_SERVER_URL=http://127.0.0.1:8002
+      # Content extraction — official Docling
+      - RAG_CONTENT_EXTRACTION_ENGINE=docling
+      - DOCLING_SERVER_URL=http://127.0.0.1:5001
 
       # RAG performance
       - RAG_SYSTEM_CONTEXT=true
@@ -119,17 +119,15 @@ services:
       # Disable broken features
       - ENABLE_RAGAS_EVALUATION=false
 
-  # ── PDF Extraction Utility ──────────────────────────────
-  extraction:
-    build:
-      context: ./extraction
-      network: host
-    container_name: copai-extraction
+  # ── Docling: LLM-ready document extraction ──────────────
+  docling:
+    image: quay.io/docling-project/docling-serve
+    container_name: copai-docling
     network_mode: host
     restart: unless-stopped
     environment:
-      - VLLM_URL=http://127.0.0.1:8000/v1/chat/completions
-      - MODEL_NAME=gemma-sealion-v4
+      - DOCLING_SERVE_ENABLE_UI=true
+      - UVICORN_WORKERS=1
 
   # ── Langfuse: PostgreSQL ────────────────────────────────
   langfuse-postgres:

@@ -20,7 +20,8 @@
       "Read(//etc/**)",
       "Bash(sudo find:*)",
       "Bash(sudo nginx:*)",
-      "Bash(nginx -v)"
+      "Bash(nginx -v)",
+      "Read(//d/cloud/Documents/work/COPAI/**)"
     ]
   }
 }
