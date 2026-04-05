@@ -96,7 +96,7 @@ services:
 
       # Embedding — loaded locally via sentence-transformers on GPU
       - RAG_EMBEDDING_ENGINE=
-      - RAG_EMBEDDING_MODEL=aisingapore/SEA-LION-E5-Embedding-600M
+      - RAG_EMBEDDING_MODEL=BAAI/bge-m3
       - RAG_EMBEDDING_DEVICE=cuda
 
       # Content extraction — official Docling
