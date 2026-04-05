@@ -144,6 +144,8 @@ services:
       - docling
     volumes:
       - ./docling-shim/shim.py:/shim.py:ro
+    environment:
+      - PYTHONUNBUFFERED=1
     command: python3 /shim.py
 
   # ── Langfuse: PostgreSQL ────────────────────────────────
