@@ -126,6 +126,11 @@ services:
       # Google OAuth
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - OPENID_PROVIDER_URL=https://accounts.google.com/.well-known/openid-configuration
+      - ENABLE_OAUTH_SIGNUP=true
+      - OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true
+      - DEFAULT_USER_ROLE=pending
+      - OAUTH_UPDATE_PICTURE_ON_LOGIN=true
 
   # ── Docling: LLM-ready document extraction (port 5002) ──
   docling:
