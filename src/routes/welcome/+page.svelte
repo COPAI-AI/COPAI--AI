@@ -26,9 +26,9 @@
 
 	const allMembers = [
 		
-		{ name: 'H.E Hul Seingheng', image: '/assets/images/Hul_Seingheng.png' },
-		{ name: 'Dr. Chen Sovann', image: '/user.png' },
-		{ name: 'Mr. Rafael Torquato Cruz', image: '/user.png' },
+		{ name: 'H.E Hul Seingheng', image: '/assets/images/Hul_Seingheng.jpg' },
+		{ name: 'Dr. Chen Sovann', image: '/assets/images/Chen_Sovann.jpg' },
+		{ name: 'Mr. Rafael Torquato Cruz', image: '/assets/images/Rafael_Torquato_Cruz.jpg' },
 		{ name: 'Mr. Phork Norak', image: '/assets/images/Norak Phork.jpg' },
 		{ name: 'Mr. Tan Chesthareah', image: '/user.png' },
 		{ name: 'Mr. Rop Borom', image: '/assets/images/RopBorom.jpg' },
@@ -123,7 +123,7 @@
 							COPAI connects researchers, policymakers, innovators, and students to accelerate AI capacity, policy readiness, and inclusive innovation in Cambodia.
 						</p>
 						<div class="flex flex-col sm:flex-row gap-4 pt-4">
-							<a href="/register" class="px-8 py-3.5 rounded-lg bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-bold transition shadow-lg hover:shadow-xl transform hover:scale-105">Start collaborating</a>
+							
 							<button on:click={() => scrollToSection('about')} class="px-8 py-3.5 rounded-lg border-2 border-orange-300 bg-white dark:bg-gray-900 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-800 font-bold transition bg-none cursor-pointer">Explore COPAI</button>
 						</div>
 						<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6">
