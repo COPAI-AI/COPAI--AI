@@ -47,7 +47,7 @@
 		[key: string]: any;
 	}[] = [];
 
-	export let className = 'w-[32rem]';
+	export let className = 'w-[24rem]';
 	export let triggerClassName = 'text-lg';
 
 	let show = false;
@@ -270,25 +270,25 @@
 	id="model-selector-{id}-button"
 >
 		<div
-			class="flex w-full items-center justify-between px-0.5 outline-none bg-transparent {triggerClassName} font-medium text-gray-700 dark:text-gray-100 hover:text-gray-900 dark:hover:text-white transition-colors"
+			class="flex w-full items-center justify-between px-2 py-2 outline-none bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all {triggerClassName} font-semibold text-gray-900 dark:text-white"
 		>
-			<span class="truncate">
+			<span class="truncate text-sm">
 				{selectedModel ? selectedModel.label : placeholder}
 			</span>
-			<ChevronDown className="ml-2 size-3.5 shrink-0 opacity-60" strokeWidth="2.5" />
+			<ChevronDown className="ml-2 size-4 shrink-0 opacity-60 text-orange-500" strokeWidth="2.5" />
 		</div>
 	</DropdownMenu.Trigger>
 
 	<DropdownMenu.Content
-		class="z-40 {$mobile ? 'w-full' : className} max-w-[calc(100vw-1rem)] rounded-xl bg-white dark:bg-gray-850 shadow-xl border border-gray-200 dark:border-gray-700/50 outline-none overflow-hidden"
+		class="z-40 {$mobile ? 'w-[20rem]' : className} max-w-[calc(100vw-1rem)] rounded-xl bg-white dark:bg-gray-850 shadow-xl border border-gray-200 dark:border-gray-700/50 outline-none overflow-hidden"
 		transition={flyAndScale}
 		side={$mobile ? 'bottom' : 'bottom-start'}
-		sideOffset={4}
+		sideOffset={6}
 	>
 		<slot>
 			{#if searchEnabled}
-				<div class="px-4 pt-3 pb-2 border-b border-gray-100 dark:border-gray-800">
-					<div class="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 focus-within:bg-gray-100 dark:focus-within:bg-gray-800 transition-colors">
+				<div class="px-4 pt-2 pb-1.5 border-b border-gray-100 dark:border-gray-800">
+					<div class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-gray-50 dark:bg-gray-800/50 focus-within:bg-gray-100 dark:focus-within:bg-gray-800 transition-colors">
 						<Search className="size-4 text-gray-400" strokeWidth="2.5" />
 						<input
 							id="model-search-input"
@@ -322,12 +322,12 @@
 
 			<!-- Filter Tabs -->
 			{#if tags.length > 0 || items.some(item => item.model?.owned_by === 'ollama' || item.model?.owned_by === 'openai' || item.model?.direct)}
-				<div class="px-4 py-2 border-b border-gray-100 dark:border-gray-800 overflow-x-auto scrollbar-thin">
-					<div class="flex gap-1.5 w-fit">
+				<div class="px-3 py-1.5 border-b border-gray-100 dark:border-gray-800 overflow-x-auto scrollbar-thin">
+					<div class="flex gap-1 w-fit">
 						<button
-							class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap {selectedTag === '' && selectedConnectionType === ''
-								? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-								: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}"
+							class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all whitespace-nowrap {selectedTag === '' && selectedConnectionType === ''
+								? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+								: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'}"
 							on:click={() => {
 								selectedConnectionType = '';
 								selectedTag = '';
@@ -338,9 +338,9 @@
 
 						{#if items.find((item) => item.model?.owned_by === 'ollama') && items.find((item) => item.model?.owned_by === 'openai')}
 							<button
-								class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap {selectedConnectionType === 'ollama'
-									? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-									: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}"
+								class="px-3 py-1 rounded-lg text-xs font-semibold transition-all whitespace-nowrap {selectedConnectionType === 'ollama'
+									? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+									: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'}"
 								on:click={() => {
 									selectedTag = '';
 									selectedConnectionType = 'ollama';
@@ -349,9 +349,9 @@
 								{$i18n.t('Local')}
 							</button>
 							<button
-								class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap {selectedConnectionType === 'openai'
-									? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-									: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}"
+								class="px-3 py-1 rounded-lg text-xs font-semibold transition-all whitespace-nowrap {selectedConnectionType === 'openai'
+									? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+									: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'}"
 								on:click={() => {
 									selectedTag = '';
 									selectedConnectionType = 'openai';
@@ -363,9 +363,9 @@
 
 						{#if items.find((item) => item.model?.direct)}
 							<button
-								class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap {selectedConnectionType === 'direct'
-									? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-									: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}"
+								class="px-3 py-1 rounded-lg text-xs font-semibold transition-all whitespace-nowrap {selectedConnectionType === 'direct'
+									? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+									: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'}"
 								on:click={() => {
 									selectedTag = '';
 									selectedConnectionType = 'direct';
@@ -377,9 +377,9 @@
 
 						{#each tags as tag}
 							<button
-								class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap capitalize {selectedTag === tag
-									? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-									: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'}"
+								class="px-3 py-1 rounded-lg text-xs font-semibold transition-all whitespace-nowrap capitalize {selectedTag === tag
+									? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md'
+									: 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'}"
 								on:click={() => {
 									selectedConnectionType = '';
 									selectedTag = tag;
@@ -393,11 +393,11 @@
 			{/if}
 
 			<!-- Model List -->
-			<div class="max-h-[400px] overflow-y-auto scrollbar-thin py-2">
+		<div class="max-h-[320px] overflow-y-auto scrollbar-thin py-2">
 				{#each filteredItems as item, index}
 					<button
 						aria-label="model-item"
-						class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors {index === selectedModelIdx ? 'bg-gray-50 dark:bg-gray-800/50' : ''}"
+						class="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-gray-700 dark:text-gray-100 hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors {index === selectedModelIdx ? 'bg-orange-50 dark:bg-orange-900/10' : ''}"
 						data-arrow-selected={index === selectedModelIdx}
 						data-value={item.value}
 						on:click={() => {
@@ -410,7 +410,7 @@
 						<img
 							src={item.model?.info?.meta?.profile_image_url ?? '/static/favicon.png'}
 							alt="Model"
-							class="rounded-full size-8 shrink-0"
+							class="rounded-full size-7 shrink-0"
 						/>
 
 						<!-- Model Info -->
@@ -466,7 +466,7 @@
 
 						<!-- Check Icon -->
 						{#if value === item.value}
-							<div class="shrink-0 text-gray-900 dark:text-white">
+							<div class="shrink-0 text-orange-500">
 								<Check />
 							</div>
 						{/if}
@@ -480,7 +480,7 @@
 				<!-- Pull Model Option -->
 				{#if !(searchValue.trim() in $MODEL_DOWNLOAD_POOL) && searchValue && ollamaVersion && $user?.role === 'admin'}
 					<button
-						class="flex w-full items-center px-4 py-2.5 text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border-t border-gray-100 dark:border-gray-800"
+						class="flex w-full items-center px-3 py-2 text-xs text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border-t border-gray-100 dark:border-gray-800"
 						on:click={pullModelHandler}
 					>
 						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4 mr-2">
@@ -492,7 +492,7 @@
 
 				<!-- Download Progress -->
 				{#each Object.keys($MODEL_DOWNLOAD_POOL) as model}
-					<div class="flex items-center justify-between px-4 py-2.5 text-sm border-t border-gray-100 dark:border-gray-800">
+					<div class="flex items-center justify-between px-3 py-2 text-xs border-t border-gray-100 dark:border-gray-800">
 						<div class="flex items-center gap-2 flex-1 min-w-0">
 							<svg class="size-4 animate-spin text-gray-600" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
 								<path d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z" opacity=".25"/>
@@ -524,9 +524,9 @@
 
 			<!-- Temporary Chat Control -->
 			{#if showTemporaryChatControl}
-				<div class="px-4 py-3 border-t border-gray-100 dark:border-gray-800">
-					<button
-						class="flex items-center justify-between w-full px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+			<div class="px-3 py-2 border-t border-gray-100 dark:border-gray-800">
+				<button
+					class="flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg text-xs text-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
 						on:click={async () => {
 							temporaryChatEnabled.set(!$temporaryChatEnabled);
 							await goto('/');
