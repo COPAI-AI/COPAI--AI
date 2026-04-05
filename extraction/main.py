@@ -10,6 +10,7 @@ Two modes:
 import os
 import base64
 import requests
+import fitz  # pymupdf
 from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from pdf2image import convert_from_bytes
@@ -59,19 +60,57 @@ def extract_page(img: Image.Image) -> str:
     return resp.json()["choices"][0]["message"]["content"]
 
 
+MIN_CHARS_EMBEDDED = 50  # pages with fewer chars are treated as scanned images
+
+
 def extract_pdf_bytes(content: bytes) -> str:
+    # Try embedded text first (fast — milliseconds)
+    try:
+        doc = fitz.open(stream=content, filetype="pdf")
+        embedded_pages = []
+        image_page_indices = []
+
+        for i, page in enumerate(doc):
+            text = page.get_text().strip()
+            if len(text) >= MIN_CHARS_EMBEDDED:
+                embedded_pages.append((i, text))
+            else:
+                image_page_indices.append(i)
+
+        doc.close()
+
+        # All pages have embedded text — return immediately, no vLLM needed
+        if not image_page_indices:
+            return "\n\n".join(
+                f"--- Page {i+1} ---\n\n{text}" for i, text in embedded_pages
+            )
+
+    except Exception:
+        embedded_pages = []
+        image_page_indices = list(range(0))  # will be filled below
+
+    # Some or all pages need vision OCR — render only those pages
     try:
         images = convert_from_bytes(content, dpi=200)
     except Exception as e:
         raise HTTPException(500, f"PDF conversion failed: {e}")
 
+    if not image_page_indices:
+        # embed extraction above failed entirely — process all pages
+        image_page_indices = list(range(len(images)))
+
+    # Build result: use embedded text where available, vLLM for image pages
+    embedded_map = {i: text for i, text in embedded_pages}
     pages = []
     for i, img in enumerate(images):
-        try:
-            text = extract_page(img)
-            pages.append(f"--- Page {i+1} ---\n\n{text}")
-        except Exception as e:
-            pages.append(f"--- Page {i+1} ---\n\n[Extraction failed: {e}]")
+        if i in embedded_map:
+            pages.append(f"--- Page {i+1} ---\n\n{embedded_map[i]}")
+        else:
+            try:
+                text = extract_page(img)
+                pages.append(f"--- Page {i+1} ---\n\n{text}")
+            except Exception as e:
+                pages.append(f"--- Page {i+1} ---\n\n[Extraction failed: {e}]")
 
     return "\n\n".join(pages)
 
