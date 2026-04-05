@@ -550,15 +550,15 @@
 						await user.set(sessionUser);
 						await config.set(await getBackendConfig());
 					} else {
-						// Redirect Invalid Session User to /auth Page
+						// Redirect Invalid Session User to welcome page
 						localStorage.removeItem('token');
-						await goto(`/auth?redirect=${encodedUrl}`);
+						await goto('/welcome');
 					}
 				} else {
-					// Don't redirect if we're already on the auth page
-					// Needed because we pass in tokens from OAuth logins via URL fragments
-					if ($page.url.pathname !== '/auth') {
-						await goto(`/auth?redirect=${encodedUrl}`);
+				// Don't redirect if we're already on the auth or welcome page
+				// Needed because we pass in tokens from OAuth logins via URL fragments
+				if ($page.url.pathname !== '/auth' && $page.url.pathname !== '/welcome') {
+					await goto('/welcome');
 					}
 				}
 			}
