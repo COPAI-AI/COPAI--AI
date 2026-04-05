@@ -26,50 +26,41 @@
 
 	const allMembers = [
 		
-		{ name: 'H.E Hul Seingheng', image: '/assets/images/Hul_Seingheng.png' },
-		{ name: 'Dr. Chen Sovann', image: '/user.png' },
-		{ name: 'Mr. Rafael Torquato Cruz', image: '/user.png' },
-		{ name: 'Mr. Phork Norak', image: '/assets/images/Norak Phork.jpg' },
-		{ name: 'Mr. Tan Chesthareah', image: '/user.png' },
-		{ name: 'Mr. Rop Borom', image: '/assets/images/RopBorom.jpg' },
-		{ name: 'Ms. Nhor Povketya', image: '/user.png' },
-		{ name: 'Ms. Jihyo Ryu', image: '/user.png' },
-		{ name: 'Ms. Yan Shen', image: '/user.png' },
-		{ name: 'Mr. Juntong Hou', image: '/user.png' },
-		{ name: 'Ms. Nanyi Li', image: '/user.png' },
-		{ name: 'Ms. Lilian Li', image: '/user.png' },
-		{ name: 'Mr. Zheng Wang', image: '/user.png' },
-		{ name: 'Mr. Toch Ensophea', image: '/user.png' },
-		{ name: 'Mr. Savuth Run', image: '/user.png' },
-		{ name: 'Mr. Chealyfey Vutha', image: '/user.png' },
-		{ name: 'Mr. Pagnarith Srun', image: '/user.png' },
-		{ name: 'Ms. Rupa Chanda', image: '/user.png' },
-		{ name: 'Mr. Jonathan Tsuen Yip Wong', image: '/user.png' },
-		{ name: 'Ms. Elena Mayer-Besting', image: '/user.png' },
-		{ name: 'Mr. Seng Touch', image: '/user.png' },
-		{ name: 'Ms. Iysang Kain', image: '/user.png' },
-		{ name: 'Ms. Sreyneang Yung', image: '/user.png' },
-		{ name: 'Ms. Sreylen Chab', image: '/user.png' },
-		{ name: 'Mr. Krisna Keo', image: '/user.png' },
-		{ name: 'Mr. Seang Sung', image: '/user.png' },
-		{ name: 'Ms. Povvoliak Sakhan', image: '/user.png' },
-		{ name: 'Ms. Sopanha Leavchum', image: '/user.png' },
-		{ name: 'Mr. Yachao Wang', image: '/user.png' },
-		{ name: 'Mr. Heng Sun', image: '/user.png' },
-		{ name: 'Mr. Chettra Nang', image: '/user.png' },
-		{ name: 'Mr. Songqi Sun', image: '/user.png' },
-		{ name: 'Ms. Socheata Sokhachan', image: '/user.png' },
-		{ name: 'Mr. Ly Hour', image: '/assets/images/LyHour.png' },
-		{ name: 'Mr. Rath Chhnoeum', image: '/assets/images/Rath Chhnoeum.jpg' },
-		{ name: 'Ms. Ye Lita', image: '/user.png' },
-		{ name: 'Mr. Ly Panharith', image: '/user.png' },
-		{ name: 'Ms. Chhoun Pisethchesda', image: '/user.png' },
-		{ name: 'Ms. Chum Monika', image: '/user.png' },
-		{ name: 'Mr. Cheang Yornphavorak', image: '/user.png' },
-		{ name: 'Mr. Khut Buntha', image: '/user.png' },
-		{ name: 'Mr. Oun MengHeang', image: '/user.png' },
-		{ name: 'Mr. Kruy Monychotakna', image: '/user.png' },
-		{ name: 'Mr. CHHOUN Oudom', image: '/user.png' }
+		{ name: 'H.E Hul Seingheng', image: '/assets/images/Hul_Seingheng.jpg' },
+		{ name: 'Dr. Chen Sovann', image: '/assets/images/Chen_Sovann.jpg' },
+		{ name: 'Mr. Rafael Torquato Cruz', image: '/assets/images/Rafael_Torquato_Cruz.jpg' },
+		{ name: 'Norak Phork', image: '/assets/images/Norak Phork.jpg' },
+		{ name: 'Chesthareah Tan', image: '/user.png' },
+		{ name: 'Borom Rop', image: '/assets/images/RopBorom.jpg' },
+		{ name: 'Povketya Nhor', image: '/user.png' },
+		{ name: 'Jihyo Ryu', image: '/user.png' },
+		{ name: 'Yan Shen', image: '/user.png' },
+		{ name: 'Juntong Hou', image: '/user.png' },
+		{ name: 'Lilian Li', image: '/user.png' },
+		{ name: 'Savuth Run', image: '/user.png' },
+		{ name: 'Lysang Kain', image: '/user.png' },
+		{ name: 'Sreyneang Yung', image: '/user.png' },
+		{ name: 'Sreylen Chab', image: '/user.png' },
+		{ name: 'Krisna Keo', image: '/user.png' },
+		{ name: 'Seang Sung', image: '/user.png' },
+		{ name: 'Povvoliak Sakhan', image: '/user.png' },
+		{ name: 'Sopanha Leavchum', image: '/user.png' },
+		{ name: 'Yachao Wang', image: '/user.png' },
+		{ name: 'Heng Sun', image: '/user.png' },
+		{ name: 'Chettra Nang', image: '/user.png' },
+		{ name: 'Songqi Sun', image: '/user.png' },
+		{ name: 'Socheata Sokhachan', image: '/user.png' },
+		{ name: 'Ly Hour', image: '/assets/images/LyHour.png' },
+		{ name: 'Rath Chhnoeum', image: '/assets/images/Rath Chhnoeum.jpg' },
+		{ name: 'Chhoun Oudom', image: '/assets/images/Chhoun_Oudom.jpg' },
+		{ name: 'Oun MengHeang', image: '/assets/images/Oun_MengHeang.jpg' },
+		{ name: 'Cheang Yornphavorak', image: '/user.png' },
+		{ name: 'Chum Monika', image: '/assets/images/Chum_Monika.jpg' },
+		{ name: 'Ye Lita', image: '/user.png' },
+		{ name: 'Chhoun Pisethchesda', image: '/user.png' },
+		{ name: 'Ly Panharith', image: '/user.png' },
+		{ name: 'Kruy Monychotakna', image: '/user.png' },
+		{ name: 'Khut Buntha', image: '/assets/images/Khut_Buntha.jpg' }
 	];
 </script>
 
@@ -123,7 +114,7 @@
 							COPAI connects researchers, policymakers, innovators, and students to accelerate AI capacity, policy readiness, and inclusive innovation in Cambodia.
 						</p>
 						<div class="flex flex-col sm:flex-row gap-4 pt-4">
-							<a href="/register" class="px-8 py-3.5 rounded-lg bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-bold transition shadow-lg hover:shadow-xl transform hover:scale-105">Start collaborating</a>
+							
 							<button on:click={() => scrollToSection('about')} class="px-8 py-3.5 rounded-lg border-2 border-orange-300 bg-white dark:bg-gray-900 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-800 font-bold transition bg-none cursor-pointer">Explore COPAI</button>
 						</div>
 						<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6">
@@ -199,7 +190,7 @@
 				</div>
 				<div class="space-y-4">
 					<div class="bg-orange-500 text-white p-6 rounded-xl shadow-lg">
-						<div class="text-4xl font-bold mb-2">44</div>
+						<div class="text-4xl font-bold mb-2">35</div>
 						<p class="text-orange-100">Members</p>
 					</div>
 					

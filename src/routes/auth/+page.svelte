@@ -22,6 +22,12 @@
 
 	let mode = $config?.features.enable_ldap ? 'ldap' : 'signin';
 
+	// Check if we should start in signup mode
+	if (typeof window !== 'undefined' && sessionStorage.getItem('authMode') === 'signup') {
+		mode = 'signup';
+		sessionStorage.removeItem('authMode');
+	}
+
 	let name = '';
 	let email = '';
 	let password = '';
