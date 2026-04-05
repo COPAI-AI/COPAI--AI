@@ -132,6 +132,7 @@ services:
     environment:
       - DOCLING_SERVE_ENABLE_UI=true
       - UVICORN_WORKERS=1
+      - DOCLING_SERVE_MAX_SYNC_WAIT=600
     command: ["docling-serve", "run", "--port", "5002"]
 
   # ── Docling API shim: maps /v1alpha/ → /v1/ for Open WebUI 0.6.5 ──
