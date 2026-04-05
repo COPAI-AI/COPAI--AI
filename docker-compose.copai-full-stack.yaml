@@ -119,6 +119,10 @@ services:
       # Disable broken features
       - ENABLE_RAGAS_EVALUATION=false
 
+      # Google OAuth
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+
   # ── Docling: LLM-ready document extraction (port 5002) ──
   docling:
     image: quay.io/docling-project/docling-serve
