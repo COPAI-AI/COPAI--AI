@@ -45,6 +45,11 @@ class Shim(http.server.BaseHTTPRequestHandler):
         self._proxy()
 
 
+class ReusePortServer(http.server.HTTPServer):
+    allow_reuse_address = True
+    allow_reuse_port = True
+
+
 if __name__ == "__main__":
     print("Docling shim listening on :5001 -> :5002")
-    http.server.HTTPServer(("0.0.0.0", 5001), Shim).serve_forever()
+    ReusePortServer(("0.0.0.0", 5001), Shim).serve_forever()
