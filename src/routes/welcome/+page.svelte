@@ -26,14 +26,14 @@
 
 	const allMembers = [
 		
-		{ name: 'H.E Hul Seingheng', image: '/static/custom/assets/images/Hul_Seingheng.jpg' },
-		{ name: 'Dr. Chen Sovann', image: '/static/custom/assets/images/Chen_Sovann.jpg' },
-		{ name: 'Mr. Rafael Torquato Cruz', image: '/static/custom/assets/images/Rafael_Torquato_Cruz.jpg' },
-		{ name: 'Norak Phork', image: '/static/custom/assets/images/Norak Phork.jpg' },
+		{ name: 'H.E Hul Seingheng', image: '/assets/images/Hul_Seingheng.jpg' },
+		{ name: 'Dr. Chen Sovann', image: '/assets/images/Chen_Sovann.jpg' },
+		{ name: 'Mr. Rafael Torquato Cruz', image: '/assets/images/Rafael_Torquato_Cruz.jpg' },
+		{ name: 'Norak Phork', image: '/assets/images/Norak Phork.jpg' },
 		{ name: 'Chesthareah Tan', image: '/user.png' },
-		{ name: 'Borom Rop', image: '/static/custom/assets/images/RopBorom.jpg' },
-		{ name: 'Povketya Nhor', image: '/static/custom/assets/images/Nhor_Povketya.jpg' },
-		{ name: 'Jihyo Ryu', image: '/static/custom/assets/images/Jihyo_Ryu.jpg' },
+		{ name: 'Borom Rop', image: '/assets/images/RopBorom.jpg' },
+		{ name: 'Povketya Nhor', image: '/assets/images/Nhor_Povketya.jpg' },
+		{ name: 'Jihyo Ryu', image: '/assets/images/Jihyo_Ryu.jpg' },
 		{ name: 'Yan Shen', image: '/user.png' },
 		{ name: 'Juntong Hou', image: '/user.png' },
 		{ name: 'Lilian Li', image: '/user.png' },
@@ -50,17 +50,17 @@
 		{ name: 'Chettra Nang', image: '/user.png' },
 		{ name: 'Songqi Sun', image: '/user.png' },
 		{ name: 'Socheata Sokhachan', image: '/user.png' },
-		{ name: 'Ly Hour', image: '/static/custom/assets/images/LyHour.png' },
-		{ name: 'Rath Chhnoeum', image: '/static/custom/assets/images/Rath Chhnoeum.jpg' },
-		{ name: 'Chhoun Oudom', image: '/static/custom/assets/images/Chhoun_Oudom.jpg' },
-		{ name: 'Oun MengHeang', image: '/static/custom/assets/images/Oun_MengHeang.jpg' },
+		{ name: 'Ly Hour', image: '/assets/images/LyHour.png' },
+		{ name: 'Rath Chhnoeum', image: '/assets/images/Rath Chhnoeum.jpg' },
+		{ name: 'Chhoun Oudom', image: '/assets/images/Chhoun_Oudom.jpg' },
+		{ name: 'Oun MengHeang', image: '/assets/images/Oun_MengHeang.jpg' },
 		{ name: 'Cheang Yornphavorak', image: '/user.png' },
-		{ name: 'Chum Monika', image: '/static/custom/assets/images/Chum_Monika.jpg' },
+		{ name: 'Chum Monika', image: '/assets/images/Chum_Monika.jpg' },
 		{ name: 'Ye Lita', image: '/user.png' },
 		{ name: 'Chhoun Pisethchesda', image: '/user.png' },
 		{ name: 'Ly Panharith', image: '/user.png' },
 		{ name: 'Kruy Monychotakna', image: '/user.png' },
-		{ name: 'Khut Buntha', image: '/static/custom/assets/images/Khut_Buntha.jpg' }
+		{ name: 'Khut Buntha', image: '/assets/images/Khut_Buntha.jpg' }
 	];
 </script>
 
