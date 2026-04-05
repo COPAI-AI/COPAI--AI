@@ -119,7 +119,7 @@ services:
       # Disable broken features
       - ENABLE_RAGAS_EVALUATION=false
 
-  # ── Docling: LLM-ready document extraction ──────────────
+  # ── Docling: LLM-ready document extraction (port 5002) ──
   docling:
     image: quay.io/docling-project/docling-serve
     container_name: copai-docling
@@ -128,6 +128,50 @@ services:
     environment:
       - DOCLING_SERVE_ENABLE_UI=true
       - UVICORN_WORKERS=1
+      - PORT=5002
+
+  # ── Docling API shim: maps /v1alpha/ → /v1/ for Open WebUI 0.6.5 ──
+  docling-shim:
+    image: python:3.11-slim
+    container_name: copai-docling-shim
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      - docling
+    command: >
+      python3 -c "
+      import http.server, urllib.request, urllib.error, re, sys
+
+      DOCLING = 'http://127.0.0.1:5002'
+
+      class Shim(http.server.BaseHTTPRequestHandler):
+          def log_message(self, fmt, *args): pass
+          def _proxy(self):
+              path = re.sub(r'^/v1alpha/', '/v1/', self.path)
+              url  = DOCLING + path
+              length = int(self.headers.get('Content-Length', 0))
+              body   = self.rfile.read(length) if length else None
+              req    = urllib.request.Request(url, data=body, method=self.command)
+              for k, v in self.headers.items():
+                  if k.lower() not in ('host', 'content-length'):
+                      req.add_header(k, v)
+              try:
+                  with urllib.request.urlopen(req, timeout=600) as r:
+                      self.send_response(r.status)
+                      for k, v in r.headers.items():
+                          self.send_header(k, v)
+                      self.end_headers()
+                      self.wfile.write(r.read())
+              except urllib.error.HTTPError as e:
+                  self.send_response(e.code)
+                  self.end_headers()
+                  self.wfile.write(e.read())
+          def do_GET(self):  self._proxy()
+          def do_POST(self): self._proxy()
+          def do_PUT(self):  self._proxy()
+
+      http.server.HTTPServer(('0.0.0.0', 5001), Shim).serve_forever()
+      "
 
   # ── Langfuse: PostgreSQL ────────────────────────────────
   langfuse-postgres:
