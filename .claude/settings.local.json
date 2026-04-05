@@ -21,7 +21,9 @@
       "Bash(sudo find:*)",
       "Bash(sudo nginx:*)",
       "Bash(nginx -v)",
-      "Read(//d/cloud/Documents/work/COPAI/**)"
+      "Read(//d/cloud/Documents/work/COPAI/**)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/DS4SD/docling-serve/main/README.md\")",
+      "Bash(curl -s \"https://api.github.com/repos/DS4SD/docling-serve/issues?state=open&labels=&per_page=50\")"
     ]
   }
 }

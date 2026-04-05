@@ -36,7 +36,7 @@ services:
       --port 8000
       --max-model-len 65536
       --max-num-seqs 40
-      --gpu-memory-utilization 0.80
+      --gpu-memory-utilization 0.85
       --dtype bfloat16
       --trust-remote-code
     healthcheck:
@@ -102,6 +102,9 @@ services:
       # Content extraction — official Docling
       - RAG_CONTENT_EXTRACTION_ENGINE=docling
       - DOCLING_SERVER_URL=http://127.0.0.1:5001
+      - DOCLING_OCR_ENGINE=rapidocr
+      - DOCLING_PDF_BACKEND=dlparse_v4
+      - DOCLING_TABLE_MODE=accurate
 
       # RAG performance
       - RAG_SYSTEM_CONTEXT=true
@@ -126,7 +129,7 @@ services:
 
   # ── Docling: LLM-ready document extraction (port 5002) ──
   docling:
-    image: quay.io/docling-project/docling-serve
+    image: quay.io/docling-project/docling-serve-cu128
     container_name: copai-docling
     network_mode: host
     restart: unless-stopped
@@ -134,7 +137,9 @@ services:
       - DOCLING_SERVE_ENABLE_UI=true
       - UVICORN_WORKERS=1
       - DOCLING_SERVE_MAX_SYNC_WAIT=600
-      - DOCLING_SERVE_ENABLE_GPU=true
+      - DOCLING_SERVE_ENG_LOC_NUM_WORKERS=4
+      - OMP_NUM_THREADS=8
+      - MKL_NUM_THREADS=8
     deploy:
       resources:
         reservations:
