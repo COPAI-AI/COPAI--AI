@@ -11,7 +11,7 @@ services:
 
   # ── LLM Server ──────────────────────────────────────────
   vllm:
-    image: vllm/vllm-openai:latest
+    image: vllm/vllm-openai:gemma4
     container_name: copai-vllm
     network_mode: host
     restart: unless-stopped
@@ -23,21 +23,24 @@ services:
               count: all
               capabilities: [gpu]
     volumes:
-      - ./models:/models
       - ~/.cache/huggingface:/root/.cache/huggingface
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - HF_HOME=/root/.cache/huggingface
       - GLOO_SOCKET_IFNAME=lo
     command: >
-      /models/Gemma-SEA-LION-v4-27B-IT-FP8-Dynamic
-      --served-model-name gemma-sealion-v4
+      google/gemma-4-E4B-it
+      --served-model-name gemma4-e4b
       --host 0.0.0.0
       --port 8000
       --max-model-len 65536
-      --max-num-seqs 40
-      --gpu-memory-utilization 0.85
-      --dtype bfloat16
+      --gpu-memory-utilization 0.92
+      --max-num-seqs 16
+      --max-num-batched-tokens 8192
+      --enable-prefix-caching
+      --enable-chunked-prefill
+      --async-scheduling
+      --limit-mm-per-prompt image=0,audio=0
       --trust-remote-code
     healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
