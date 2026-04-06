@@ -68,6 +68,7 @@ services:
       context: .
       args:
         OLLAMA_BASE_URL: '/ollama'
+        USE_CUDA: 'true'
       dockerfile: Dockerfile
       network: host
     image: copai-webui:full-stack
