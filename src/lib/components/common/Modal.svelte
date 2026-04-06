@@ -7,8 +7,8 @@
 	export let show = true;
 	export let size = 'md';
 	export let containerClassName = 'p-3';
-	export let className = 'bg-white dark:bg-gray-900 rounded-2xl';
-	export let backdropClassName = 'bg-black/40 backdrop-blur-sm';
+	export let className = 'bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700';
+	export let backdropClassName = 'bg-black/20 backdrop-blur-none';
 	export let position = 'center'; // 'center', 'left', 'right'
 
 	let modalElement: HTMLDivElement | null = null;

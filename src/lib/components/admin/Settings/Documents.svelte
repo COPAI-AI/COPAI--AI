@@ -290,8 +290,9 @@
 								<div class="self-center text-xs font-medium" style="color: #374151; font-size: 13px;">
 									{$i18n.t('Content Extraction Engine')}
 								</div>
-								<div class="w-full sm:w-auto">
+								<div class="w-full sm:w-auto relative">
 									<SelectDropdown
+										align="right"
 										value={RAGConfig.CONTENT_EXTRACTION_ENGINE}
 										options={[
 											{ value: '', label: $i18n.t('Default') },
@@ -387,8 +388,9 @@
 							<!-- Text Splitter -->
 							<div class="flex w-full justify-between items-center gap-2" style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.04);">
 								<div class="self-center text-xs font-medium" style="color: #374151; font-size: 13px;">{$i18n.t('Text Splitter')}</div>
-								<div class="w-full sm:w-auto">
+								<div class="w-full sm:w-auto relative">
 									<SelectDropdown
+										align="right"
 										value={RAGConfig.TEXT_SPLITTER}
 										options={[
 											{ value: '', label: `${$i18n.t('Default')} (${$i18n.t('Character')})` },
@@ -461,8 +463,9 @@
 									<div class="self-center text-xs font-medium" style="color: #374151; font-size: 13px;">
 										{$i18n.t('Embedding Model Engine')}
 									</div>
-									<div class="w-full sm:w-auto">
+									<div class="w-full sm:w-auto relative">
 										<SelectDropdown
+											align="right"
 											value={embeddingEngine}
 											options={[
 												{ value: '', label: $i18n.t('Default (SentenceTransformers)') },

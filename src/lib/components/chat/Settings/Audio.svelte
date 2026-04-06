@@ -197,13 +197,16 @@
 								Select your preferred STT engine
 							</div>
 						</div>
-						<SelectDropdown
-							bind:value={STTEngine}
-							options={[
-								{ value: '', label: $i18n.t('Default') },
-								{ value: 'web', label: $i18n.t('Web API') }
-							]}
-						/>
+						<div class="relative">
+							<SelectDropdown
+								align="right"
+								bind:value={STTEngine}
+								options={[
+									{ value: '', label: $i18n.t('Default') },
+									{ value: 'web', label: $i18n.t('Web API') }
+								]}
+							/>
+						</div>
 					</div>
 				</div>
 			{/if}
@@ -220,8 +223,8 @@
 						</div>
 					</div>
 					<button
-						class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {speechAutoSend
-							? 'bg-blue-600'
+						class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none {speechAutoSend
+							? 'bg-emerald-500'
 							: 'bg-gray-300 dark:bg-gray-700'}"
 						on:click={() => {
 							toggleSpeechAutoSend();
@@ -260,13 +263,16 @@
 							Select your preferred TTS engine
 						</div>
 					</div>
-					<SelectDropdown
-						bind:value={TTSEngine}
-						options={[
-							{ value: '', label: $i18n.t('Default') },
-							{ value: 'browser-kokoro', label: $i18n.t('Kokoro.js (Browser)') }
-						]}
-					/>
+					<div class="relative">
+						<SelectDropdown
+							align="right"
+							bind:value={TTSEngine}
+							options={[
+								{ value: '', label: $i18n.t('Default') },
+								{ value: 'browser-kokoro', label: $i18n.t('Kokoro.js (Browser)') }
+							]}
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -282,15 +288,18 @@
 								Data type precision for model computation
 							</div>
 						</div>
-						<SelectDropdown
-							bind:value={TTSEngineConfig.dtype}
-							options={[
-								{ value: 'fp32', label: 'fp32' },
-								{ value: 'fp16', label: 'fp16' },
-								{ value: 'q8', label: 'q8' },
-								{ value: 'q4', label: 'q4' }
-							]}
-						/>
+						<div class="relative">
+							<SelectDropdown
+								align="right"
+								bind:value={TTSEngineConfig.dtype}
+								options={[
+									{ value: 'fp32', label: 'fp32' },
+									{ value: 'fp16', label: 'fp16' },
+									{ value: 'q8', label: 'q8' },
+									{ value: 'q4', label: 'q4' }
+								]}
+							/>
+						</div>
 					</div>
 				</div>
 			{/if}
@@ -307,8 +316,8 @@
 						</div>
 					</div>
 					<button
-						class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {responseAutoPlayback
-							? 'bg-blue-600'
+						class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none {responseAutoPlayback
+							? 'bg-emerald-500'
 							: 'bg-gray-300 dark:bg-gray-700'}"
 						on:click={() => {
 							toggleResponseAutoPlayback();
@@ -335,13 +344,16 @@
 							Adjust audio playback speed
 						</div>
 					</div>
-					<SelectDropdown
-						bind:value={playbackRate}
-						options={speedOptions.map((speed) => ({
-							value: speed.toString(),
-							label: `${speed}x`
-						}))}
-					/>
+					<div class="relative">
+						<SelectDropdown
+							align="right"
+							bind:value={playbackRate}
+							options={speedOptions.map((speed) => ({
+								value: speed.toString(),
+								label: `${speed}x`
+							}))}
+						/>
+					</div>
 				</div>
 			</div>
 		</div>

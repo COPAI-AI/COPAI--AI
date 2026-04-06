@@ -89,23 +89,39 @@
 		<div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
 				<!-- Header Section -->
 			<div class="bg-gradient-to-r from-orange-50 to-orange-50 dark:from-purple-950/30 dark:to-pink-950/30 px-3 sm:px-6 py-4 sm:py-5 border-b border-gray-200 dark:border-gray-700">
-				<div class="flex items-center gap-2 sm:gap-3">
+				<div class="flex items-center justify-between gap-2 sm:gap-3">
 				
-					<div class="p-1.5 sm:p-2 bg-purple-500/10 dark:bg-purple-500/20 rounded-lg">
-						<svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-							</svg>
+					<div class="flex items-center gap-2 sm:gap-3">
+						<div class="p-1.5 sm:p-2 bg-purple-500/10 dark:bg-purple-500/20 rounded-lg">
+							<svg class="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+								</svg>
+							</div>
+							<div>
+								<h2 class="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+									{edit ? $i18n.t('Edit Prompt') : $i18n.t('Create New Prompt')}
+								</h2>
+								<p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+									{$i18n.t('Define a reusable command with custom content')}
+								</p>
+							</div>
 						</div>
-						<div>
-							<h2 class="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-								{edit ? $i18n.t('Edit Prompt') : $i18n.t('Create New Prompt')}
-							</h2>
-							<p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-								{$i18n.t('Define a reusable command with custom content')}
-							</p>
+
+					<!-- Access Control Button in Header -->
+					<button
+						class="group relative px-3 sm:px-4 py-2 sm:py-3 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 border-2 border-gray-200 dark:border-gray-700 transition-all duration-200 rounded-lg sm:rounded-xl flex gap-1.5 sm:gap-2 items-center whitespace-nowrap"
+						type="button"
+						on:click={() => {
+							showAccessControlModal = true;
+						}}
+					>
+					<LockClosed strokeWidth="2.5" className="size-3 sm:size-4 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
+					<div class="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+							{$i18n.t('Access')}
 						</div>
-					</div>
+					</button>
 				</div>
+			</div>
 
 				<!-- Form Content -->
 			<div class="p-3 sm:p-6 space-y-4 sm:space-y-6">
@@ -122,40 +138,21 @@
 						>
 						<div class="space-y-2 sm:space-y-3">
 							<!-- Title Input -->
-							<div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3">
-								<div class="flex-1 min-w-0">
-									<label class="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
-										{$i18n.t('Prompt Title')}
-										<span class="text-red-500">*</span>
-									</label>
-									<input
-										class="text-base sm:text-lg font-semibold w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200 outline-none"
-											placeholder={$i18n.t('Title')}
-											bind:value={title}
-											required
-										/>
-									</div>
-
-									<!-- Access Control Button -->
-									<div class="w-full sm:w-auto">
-										<button
-											class="group relative w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 transition-all duration-200 rounded-lg sm:rounded-xl flex gap-1.5 sm:gap-2 items-center justify-center sm:justify-start"
-											type="button"
-											on:click={() => {
-												showAccessControlModal = true;
-											}}
-										>
-										<LockClosed strokeWidth="2.5" className="size-3 sm:size-4 text-gray-600 dark:text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
-										<div class="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
-												{$i18n.t('Access')}
-											</div>
-										</button>
-									</div>
-									</div>
+							<div>
+								<label class="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
+									{$i18n.t('Prompt Title')}
+									<span class="text-red-500">*</span>
+								</label>
+								<input
+									class="text-base sm:text-lg font-semibold w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200 outline-none"
+										placeholder={$i18n.t('Title')}
+										bind:value={title}
+										required
+									/>
 								</div>
 
-								<!-- Command Input -->
-								<div>
+							<!-- Command Input -->
+							<div>
 								<label class="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
 									{$i18n.t('Command')}
 									<span class="text-red-500">*</span>
@@ -166,17 +163,16 @@
 									</div>
 									<input
 										class="w-full bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl pl-6 sm:pl-8 pr-3 sm:pr-4 py-2 sm:py-3 text-xs sm:text-sm font-mono text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-200 focus:ring-purple-500/10 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-											placeholder={$i18n.t('Command')}
-											bind:value={command}
-											required
-											disabled={edit}
-										/>
-									</div>
-									<p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-										{$i18n.t('Only alphanumeric characters and hyphens are allowed')}
-									</p>
+										placeholder={$i18n.t('Command')}
+										bind:value={command}
+										required
+										disabled={edit}
+									/>
 								</div>
-							
+								<p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+									{$i18n.t('Only alphanumeric characters and hyphens are allowed')}
+								</p>
+							</div>
 						</Tooltip>
 					</div>
 

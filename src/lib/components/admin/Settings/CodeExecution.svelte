@@ -71,8 +71,9 @@
 								Choose the execution environment
 							</span>
 						</div>
-						<div class="w-full sm:w-auto">
+						<div class="w-full sm:w-auto relative">
 							<SelectDropdown
+								align="right"
 								value={config.CODE_EXECUTION_ENGINE}
 								options={[
 									{ value: '', label: 'Select a engine' },
@@ -112,8 +113,9 @@
 									<label class="text-sm font-medium text-gray-700 dark:text-gray-300">
 										{$i18n.t('Jupyter Auth')}
 									</label>
-									<div class="w-full sm:w-auto">
-										<SelectDropdown
+								<div class="w-full sm:w-auto relative">
+									<SelectDropdown
+										align="right"
 											value={config.CODE_EXECUTION_JUPYTER_AUTH}
 											options={[
 												{ value: '', label: 'None' },
@@ -197,8 +199,9 @@
 									Choose the interpreter environment
 								</span>
 							</div>
-							<div class="w-full sm:w-auto">
+							<div class="w-full sm:w-auto relative">
 								<SelectDropdown
+									align="right"
 									value={config.CODE_INTERPRETER_ENGINE}
 									options={[
 										{ value: '', label: 'Select a engine' },
@@ -238,8 +241,9 @@
 										<label class="text-sm font-medium text-gray-700 dark:text-gray-300">
 											{$i18n.t('Jupyter Auth')}
 										</label>
-										<div class="w-full sm:w-auto">
+										<div class="w-full sm:w-auto relative">
 											<SelectDropdown
+												align="right"
 												value={config.CODE_INTERPRETER_JUPYTER_AUTH}
 												options={[
 													{ value: '', label: 'None' },

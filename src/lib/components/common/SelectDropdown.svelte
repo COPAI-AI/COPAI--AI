@@ -7,6 +7,7 @@
 	export let label = '';
 	export let description = '';
 	export let disabled = false;
+	export let align = 'left'; // 'left' or 'right'
 
 	const dispatch = createEventDispatcher();
 	let isOpen = false;
@@ -156,11 +157,11 @@
 		aria-haspopup="listbox"
 		aria-expanded={isOpen}
 		aria-controls={listboxId}
-		class="w-full sm:w-auto min-w-[10rem] px-3 py-2 bg-white dark:bg-gray-700/90 border border-gray-200 dark:border-gray-600 rounded-xl shadow-sm outline-none transition-all duration-150 cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400/60 dark:focus:border-blue-500/60 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-between gap-2 text-sm text-gray-900 dark:text-white"
+		class="w-full sm:w-auto min-w-[10rem] px-3 py-1 bg-white dark:bg-gray-700/90 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm outline-none transition-all duration-150 cursor-pointer hover:border-gray-300 dark:hover:border-gray-500 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400/60 dark:focus:border-blue-500/60 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-between gap-2 text-xs text-gray-900 dark:text-white"
 	>
 		<span class="truncate">{getLabel(value)}</span>
 		<svg
-			class="w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform duration-150 {isOpen ? 'rotate-180' : ''}"
+			class="w-3 h-3 text-gray-500 dark:text-gray-400 transition-transform duration-150 {isOpen ? 'rotate-180' : ''}"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"
@@ -173,10 +174,10 @@
 		<div
 			id={listboxId}
 			role="listbox"
-			class="absolute top-full left-0 sm:left-auto sm:right-0 mt-2 w-full sm:w-56 max-h-64 overflow-y-auto bg-white/95 dark:bg-gray-700/95 backdrop-blur border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg z-50 p-1"
+			class="absolute top-full {align === 'right' ? 'right-0' : 'left-0'} mt-3 w-full sm:w-56 max-h-48 overflow-y-auto bg-white/95 dark:bg-gray-700/95 backdrop-blur border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 p-0.5"
 		>
 			{#if options.length === 0}
-				<div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">No options</div>
+				<div class="px-2 py-1 text-xs text-gray-500 dark:text-gray-400">No options</div>
 			{:else}
 				{#each options as option, index}
 					<button
@@ -188,7 +189,7 @@
 							activeIndex = index;
 						}}
 						on:click={() => selectOption(option.value)}
-						class="w-full text-left px-3 py-2 text-sm rounded-lg transition-colors flex items-center justify-between gap-2 {value === option.value
+						class="w-full text-left px-2 py-1 text-xs rounded-md transition-colors flex items-center justify-between gap-2 {value === option.value
 							? 'bg-blue-50 dark:bg-blue-900/30 text-blue-900 dark:text-blue-100 font-medium'
 							: activeIndex === index
 								? 'bg-gray-100 dark:bg-gray-600/50 text-gray-900 dark:text-gray-100'
@@ -196,7 +197,7 @@
 					>
 						<span class="truncate">{option.label}</span>
 						{#if value === option.value}
-							<svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+							<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
 								<path
 									fill-rule="evenodd"
 									d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

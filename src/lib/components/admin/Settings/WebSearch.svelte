@@ -125,8 +125,9 @@
 							<div class="self-center text-xs font-medium" style="color: #374151; font-size: 13px;">
 								{$i18n.t('Web Search Engine')}
 							</div>
-							<div class="w-full sm:w-auto">
-								<SelectDropdown
+						<div class="w-full sm:w-auto relative">
+							<SelectDropdown
+								align="right"
 									value={webConfig.WEB_SEARCH_ENGINE}
 									options={webSearchEngineOptions}
 									on:change={(e) => (webConfig.WEB_SEARCH_ENGINE = e.detail.value)}
@@ -563,8 +564,9 @@
 							<div class="self-center text-xs font-medium" style="color: #374151; font-size: 13px;">
 								{$i18n.t('Web Loader Engine')}
 							</div>
-							<div class="w-full sm:w-auto">
-								<SelectDropdown
+						<div class="w-full sm:w-auto relative">
+							<SelectDropdown
+								align="right"
 									value={webConfig.WEB_LOADER_ENGINE}
 									options={webLoaderEngineOptions}
 									on:change={(e) => (webConfig.WEB_LOADER_ENGINE = e.detail.value)}

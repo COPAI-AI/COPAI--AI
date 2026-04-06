@@ -255,18 +255,21 @@
 							Choose your preferred color theme
 						</div>
 					</div>
-					<SelectDropdown
-						bind:value={selectedTheme}
-						options={[
-							{ value: 'system', label: $i18n.t('System') },
-							{ value: 'dark', label: $i18n.t('Dark') },
-							{ value: 'oled-dark', label: $i18n.t('OLED Dark') },
-							{ value: 'light', label: $i18n.t('Light') }
-						]}
-						on:change={(e) => {
-							themeChangeHandler(selectedTheme);
-						}}
-					/>
+					<div class="relative">
+						<SelectDropdown
+							align="right"
+							bind:value={selectedTheme}
+							options={[
+								{ value: 'system', label: $i18n.t('System') },
+								{ value: 'dark', label: $i18n.t('Dark') },
+								{ value: 'oled-dark', label: $i18n.t('OLED Dark') },
+								{ value: 'light', label: $i18n.t('Light') }
+							]}
+							on:change={(e) => {
+								themeChangeHandler(selectedTheme);
+							}}
+						/>
+					</div>
 				</div>
 			</div>
 
@@ -282,14 +285,17 @@
 								Select your preferred language
 							</div>
 						</div>
-						<SelectDropdown
-							bind:value={lang}
-							options={languages.map((language) => ({
-								value: language['code'],
-								label: language['title']
-							}))}
-							on:change={() => changeLanguage(lang)}
-						/>
+						<div class="relative">
+							<SelectDropdown
+								align="right"
+								bind:value={lang}
+								options={languages.map((language) => ({
+									value: language['code'],
+									label: language['title']
+								}))}
+								on:change={() => changeLanguage(lang)}
+							/>
+						</div>
 					</div>
 
 					{#if $i18n.language === 'en-US'}
