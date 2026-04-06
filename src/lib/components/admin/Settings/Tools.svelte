@@ -60,7 +60,7 @@
 			<!-- Tool Servers Section -->
 			<div class="mb-6 bg-gradient-to-b from-gray-50/50 to-transparent dark:from-gray-800/20 dark:to-transparent rounded-xl p-3 sm:p-5 border border-gray-200/60 dark:border-gray-700/30">
 				<div class="mb-4 flex items-center gap-2">
-					<div class="w-1 h-6 bg-blue-500 rounded-sm"></div>
+					<div class="w-1 h-6 bg-orange-500 rounded-sm"></div>
 					<div class="text-base font-semibold text-gray-900 dark:text-gray-100" style="letter-spacing: -0.01em;">{$i18n.t('Tool Servers')}</div>
 				</div>
 

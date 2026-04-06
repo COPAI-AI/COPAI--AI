@@ -33,6 +33,7 @@
 	let password = '';
 
 	let ldapUsername = '';
+	let showPassword = false;
 
 	const querystringValue = (key) => {
 		const querystring = window.location.search;
@@ -390,6 +391,18 @@
 		color: #9ca3af;
 		width: 16px;
 		height: 16px;
+	}
+
+	.password-toggle {
+		padding: 4px;
+	}
+
+	.password-toggle:hover {
+		color: #6b7280 !important;
+	}
+
+	.dark .password-toggle:hover {
+		color: #9ca3af !important;
 	}
 
 	/* Checkbox */
@@ -801,15 +814,40 @@
 									<svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
 									</svg>
-									<input
-										bind:value={password}
-										type="password"
-										class="auth-input"
-										placeholder="••••••••"
-										autocomplete="current-password"
-										name="current-password"
-										required
-									/>
+									{#if showPassword}
+										<input
+											bind:value={password}
+											type="text"
+											class="auth-input"
+											placeholder="••••••••"
+											autocomplete="current-password"
+											name="current-password"
+											required
+										/>
+									{:else}
+										<input
+											bind:value={password}
+											type="password"
+											class="auth-input"
+											placeholder="••••••••"
+											autocomplete="current-password"
+											name="current-password"
+											required
+										/>
+									{/if}
+									<button
+										type="button"
+										on:click={() => showPassword = !showPassword}
+										style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s;"
+										class="password-toggle"
+										title={showPassword ? 'Hide password' : 'Show password'}
+									>
+										{#if showPassword}
+											<img src="/static/eye_open.png" alt="Show" style="width: 20px; height: 20px; opacity: 0.6;" />				
+										{:else}
+											<img src="/static/close_eye.png" alt="Hide" style="width: 20px; height: 20px; opacity: 0.6;" />
+										{/if}
+									</button>
 								</div>
 							</div>
 

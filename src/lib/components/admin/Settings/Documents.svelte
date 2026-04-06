@@ -707,7 +707,7 @@
 														rerankingModelUpdateHandler();
 													}}
 													disabled={updateRerankingModelLoading}
-													style="background: linear-gradient(135deg, #8b5cf6, #ec4899); color: white; border-radius: 8px; padding: 10px 14px; transition: all 0.2s; box-shadow: 0 2px 6px rgba(139, 92, 246, 0.25); border: none;"
+													style="background: #3b82f6; color: white; border-radius: 8px; padding: 10px 14px; transition: all 0.2s; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25); border: none;"
 												>
 													{#if updateRerankingModelLoading}
 														<div class="self-center">
