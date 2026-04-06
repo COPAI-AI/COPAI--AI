@@ -153,7 +153,8 @@ COPY --chown=$UID:$GID ./backend/requirements.txt ./requirements.txt
 RUN pip3 install --no-cache-dir uv && \
     if [ "$USE_CUDA" = "true" ]; then \
     # If you use CUDA the whisper and embedding model will be downloaded on first use
-    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/$USE_CUDA_DOCKER_VER --no-cache-dir && \
+    # Pin torch>=2.6 (cu124 wheels) — required by transformers CVE-2025-32434 fix
+    pip3 install "torch>=2.6" torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124 --no-cache-dir && \
     uv pip install --system -r requirements.txt --no-cache-dir && \
     # Khmer document extraction dependencies
     pip3 install --no-cache-dir sentence-transformers docling pdf2image pytesseract && \
