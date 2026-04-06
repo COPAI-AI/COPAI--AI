@@ -97,6 +97,7 @@ services:
       - OLLAMA_BASE_URL=
 
       # Auth
+      - WEBUI_NAME=COPAI
       - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
       - WEBUI_URL=${WEBUI_URL}
       - CORS_ALLOW_ORIGIN=${WEBUI_URL}
