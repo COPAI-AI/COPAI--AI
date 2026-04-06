@@ -684,6 +684,33 @@ def apply_params_to_form_data(form_data, model):
 
 async def process_chat_payload(request, form_data, user, metadata, model):
 
+    # --- Langfuse: start trace ---
+    try:
+        _lf_enabled = getattr(request.app.state.config, "ENABLE_LANGFUSE", "MISSING")
+        from loguru import logger as _lf_log
+        _lf_log.info(f"[Langfuse] ENABLE_LANGFUSE={_lf_enabled!r}")
+        if _lf_enabled:
+            from datetime import datetime, timezone
+            from open_webui.utils.langfuse_integration import start_trace
+
+            _lf_trace = start_trace(
+                trace_id=metadata.get("message_id") or str(uuid4()),
+                user_id=user.id,
+                session_id=metadata.get("session_id"),
+                chat_id=metadata.get("chat_id"),
+                model_id=form_data.get("model", ""),
+                input_messages=form_data.get("messages", []),
+                metadata=metadata,
+            )
+            _lf_log.info(f"[Langfuse] start_trace returned: {_lf_trace!r}")
+            request.state.langfuse_trace = _lf_trace
+            request.state.langfuse_trace_start = datetime.now(timezone.utc)
+            request.state.langfuse_rag_ctx = None
+    except Exception as _lf_exc:
+        from loguru import logger as _lf_log
+        _lf_log.warning(f"[Langfuse] trace start error: {_lf_exc}")
+    # --- end Langfuse ---
+
     form_data = apply_params_to_form_data(form_data, model)
     log.debug(f"form_data: {form_data}")
 
@@ -885,6 +912,34 @@ async def process_chat_payload(request, form_data, user, metadata, model):
     except Exception as e:
         log.exception(e)
 
+    # --- Langfuse: capture RAG retrieval context ---
+    try:
+        if sources and getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
+            from open_webui.utils.langfuse_integration import (
+                start_retrieval_span,
+                end_retrieval_span,
+            )
+
+            _lf_trace = getattr(request.state, "langfuse_trace", None)
+            _lf_span = start_retrieval_span(
+                _lf_trace,
+                query=get_last_user_message(form_data["messages"]) or "",
+                files=metadata.get("files", []),
+                top_k=getattr(request.app.state.config, "RAG_TOP_K", 3),
+            )
+            end_retrieval_span(_lf_span, sources=sources)
+
+            _rag_contexts = [
+                doc
+                for source in sources
+                for doc in source.get("document", [])
+                if doc
+            ]
+            request.state.langfuse_rag_ctx = _rag_contexts or None
+    except Exception as _lf_exc:
+        log.debug(f"Langfuse RAG capture error: {_lf_exc}")
+    # --- end Langfuse ---
+
     # If context is not empty, insert it into the messages
     if len(sources) > 0:
         context_string = ""
@@ -1070,6 +1125,99 @@ async def process_chat_response(
     ):
         event_emitter = get_event_emitter(metadata)
         event_caller = get_event_call(metadata)
+
+    # --- Langfuse: wrap response for generation logging ---
+    _lf_trace = getattr(request.state, "langfuse_trace", None)
+    if _lf_trace and getattr(request.app.state.config, "ENABLE_LANGFUSE", False):
+        import asyncio as _asyncio
+        import json as _lf_json
+        from datetime import datetime, timezone as _tz
+        from open_webui.utils.langfuse_integration import log_generation, run_ragas_evaluation
+
+        _lf_start = getattr(request.state, "langfuse_trace_start", None)
+        _lf_rag_ctx = getattr(request.state, "langfuse_rag_ctx", None)
+        _lf_ragas = bool(getattr(request.app.state.config, "ENABLE_RAGAS_EVALUATION", False))
+        _lf_model = form_data.get("model", "")
+        _lf_messages = form_data.get("messages", [])
+
+        if isinstance(response, StreamingResponse):
+            async def _langfuse_stream_interceptor(original_iterator):
+                accumulated = []
+                usage_data = None
+                try:
+                    async for chunk in original_iterator:
+                        yield chunk
+                        raw = chunk.decode("utf-8", errors="ignore") if isinstance(chunk, bytes) else chunk
+                        for line in raw.splitlines():
+                            if not line.startswith("data: ") or line == "data: [DONE]":
+                                continue
+                            try:
+                                data = _lf_json.loads(line[6:])
+                                delta = data.get("choices", [{}])[0].get("delta", {})
+                                if delta.get("content"):
+                                    accumulated.append(delta["content"])
+                                if data.get("usage"):
+                                    usage_data = data["usage"]
+                            except Exception:
+                                pass
+                finally:
+                    try:
+                        output_content = "".join(accumulated)
+                        log_generation(
+                            _lf_trace,
+                            model_id=_lf_model,
+                            input_messages=_lf_messages,
+                            output_content=output_content,
+                            usage=usage_data,
+                            start_time=_lf_start,
+                            end_time=datetime.now(_tz.utc),
+                        )
+                        if _lf_rag_ctx and output_content and _lf_ragas:
+                            _asyncio.create_task(
+                                run_ragas_evaluation(
+                                    _lf_trace,
+                                    question=get_last_user_message(_lf_messages) or "",
+                                    answer=output_content,
+                                    contexts=_lf_rag_ctx,
+                                )
+                            )
+                        from open_webui.utils.langfuse_integration import get_langfuse_client as _get_lf_client
+                        _lf_client = _get_lf_client()
+                        if _lf_client:
+                            try:
+                                _lf_client.flush()
+                            except Exception:
+                                pass
+                    except Exception as _exc:
+                        log.debug(f"Langfuse stream interceptor error: {_exc}")
+
+            response = StreamingResponse(
+                _langfuse_stream_interceptor(response.body_iterator),
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=response.media_type,
+                background=response.background,
+            )
+        else:
+            # Non-streaming: read content directly from the response dict
+            try:
+                _lf_content = (
+                    response.get("choices", [{}])[0].get("message", {}).get("content", "")
+                    if isinstance(response, dict)
+                    else ""
+                )
+                log_generation(
+                    _lf_trace,
+                    model_id=_lf_model,
+                    input_messages=_lf_messages,
+                    output_content=_lf_content,
+                    usage=response.get("usage") if isinstance(response, dict) else None,
+                    start_time=_lf_start,
+                    end_time=datetime.now(_tz.utc),
+                )
+            except Exception as _exc:
+                log.debug(f"Langfuse non-streaming log error: {_exc}")
+    # --- end Langfuse ---
 
     # Non-streaming response
     if not isinstance(response, StreamingResponse):

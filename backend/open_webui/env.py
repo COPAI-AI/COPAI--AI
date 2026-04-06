@@ -485,6 +485,16 @@ OTEL_TRACES_SAMPLER = os.environ.get(
 ).lower()
 
 ####################################
+# LANGFUSE
+####################################
+
+ENABLE_LANGFUSE = os.environ.get("ENABLE_LANGFUSE", "False").lower() == "true"
+LANGFUSE_HOST = os.environ.get("LANGFUSE_HOST", "http://localhost:3000")
+LANGFUSE_PUBLIC_KEY = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
+LANGFUSE_SECRET_KEY = os.environ.get("LANGFUSE_SECRET_KEY", "")
+ENABLE_RAGAS_EVALUATION = os.environ.get("ENABLE_RAGAS_EVALUATION", "False").lower() == "true"
+
+####################################
 # TOOLS/FUNCTIONS PIP OPTIONS
 ####################################
 

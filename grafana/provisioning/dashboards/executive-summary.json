@@ -1,0 +1,253 @@
+{
+  "title": "Executive Summary",
+  "uid": "copai-executive",
+  "tags": ["copai", "executive"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "refresh": "5m",
+  "time": {"from": "now-30d", "to": "now"},
+  "timepicker": {
+    "quick_ranges": [
+      {"display": "Today",      "from": "now/d", "to": "now"},
+      {"display": "This Week",  "from": "now/w", "to": "now"},
+      {"display": "This Month", "from": "now/M", "to": "now"}
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "electricity_price_usd",
+        "label": "Electricity (USD/kWh)",
+        "type": "textbox",
+        "current": {"value": "0.152"},
+        "hide": 0
+      },
+      {
+        "name": "usd_to_khr",
+        "label": "USD → KHR Rate",
+        "type": "textbox",
+        "current": {"value": "4000"},
+        "hide": 0
+      },
+      {
+        "name": "server_idle_watts",
+        "label": "Server Idle Watts",
+        "type": "textbox",
+        "current": {"value": "200"},
+        "hide": 2
+      },
+      {
+        "name": "currency",
+        "label": "Currency",
+        "type": "custom",
+        "query": "USD : 0, KHR : 1",
+        "current": {"value": "0", "text": "USD"},
+        "options": [
+          {"value": "0", "text": "USD", "selected": true},
+          {"value": "1", "text": "KHR", "selected": false}
+        ],
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+
+    {"id": 100, "type": "row", "title": "Selected Period Overview", "gridPos": {"x": 0, "y": 0, "w": 24, "h": 1}, "collapsed": false},
+
+    {
+      "id": 1, "type": "stat", "title": "Total Requests",
+      "description": "Total AI requests served in the selected time range",
+      "gridPos": {"x": 0, "y": 1, "w": 4, "h": 5},
+      "fieldConfig": {"defaults": {"decimals": 0,
+        "thresholds": {"steps": [{"color": "blue", "value": 0}, {"color": "green", "value": 100}, {"color": "super-light-blue", "value": 1000}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "none", "textMode": "auto", "orientation": "auto"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "max_over_time(vllm:request_success_total[$__range]) - min_over_time(vllm:request_success_total[$__range])",
+        "legendFormat": "Requests",
+        "instant": true}]
+    },
+    {
+      "id": 2, "type": "stat", "title": "Total Tokens Generated",
+      "description": "Total output tokens produced in the selected time range",
+      "gridPos": {"x": 4, "y": 1, "w": 4, "h": 5},
+      "fieldConfig": {"defaults": {"decimals": 0,
+        "thresholds": {"steps": [{"color": "blue", "value": 0}, {"color": "green", "value": 10000}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "none"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "max_over_time(vllm:generation_tokens_total[$__range]) - min_over_time(vllm:generation_tokens_total[$__range])",
+        "legendFormat": "Tokens",
+        "instant": true}]
+    },
+    {
+      "id": 3, "type": "stat", "title": "Operating Cost",
+      "description": "Electricity cost for the selected time range",
+      "gridPos": {"x": 8, "y": 1, "w": 4, "h": 5},
+      "fieldConfig": {"defaults": {"decimals": 2,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 20}, {"color": "red", "value": 60}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "none"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "(\n  (max_over_time(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[$__range]) - min_over_time(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[$__range])) / 1e6 / 3600\n  + ($server_idle_watts * $__range_s / 3600 / 1000)\n) * $electricity_price_usd * (1 + $currency * ($usd_to_khr - 1))",
+        "legendFormat": "Cost",
+        "instant": true}]
+    },
+    {
+      "id": 4, "type": "stat", "title": "Saved vs GPT-4o API",
+      "description": "Money saved vs GPT-4o output pricing ($0.010/1k tokens). Green = saving money. Red = need more usage to justify server cost.",
+      "gridPos": {"x": 12, "y": 1, "w": 4, "h": 5},
+      "fieldConfig": {"defaults": {"decimals": 2,
+        "thresholds": {"steps": [{"color": "red", "value": -9999999}, {"color": "yellow", "value": 0}, {"color": "green", "value": 1}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "colorMode": "background", "graphMode": "none"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "(\n  (max_over_time(vllm:generation_tokens_total[$__range]) - min_over_time(vllm:generation_tokens_total[$__range])) / 1000 * 0.010\n  - (\n    (max_over_time(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[$__range]) - min_over_time(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[$__range])) / 1e6 / 3600\n    + ($server_idle_watts * $__range_s / 3600 / 1000)\n  ) * $electricity_price_usd\n) * (1 + $currency * ($usd_to_khr - 1))",
+        "legendFormat": "Savings",
+        "instant": true}]
+    },
+    {
+      "id": 5, "type": "stat", "title": "Avg Response Time",
+      "description": "Median end-to-end response time per request",
+      "gridPos": {"x": 16, "y": 1, "w": 4, "h": 5},
+      "fieldConfig": {"defaults": {"unit": "s", "decimals": 2,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 5}, {"color": "red", "value": 15}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["mean"]}, "colorMode": "background", "graphMode": "none"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "histogram_quantile(0.5, rate(vllm:e2e_request_latency_seconds_bucket[$__range]))",
+        "legendFormat": "p50"}]
+    },
+    {
+      "id": 6, "type": "stat", "title": "Service Availability",
+      "description": "% of time the AI service was up and reachable",
+      "gridPos": {"x": 20, "y": 1, "w": 4, "h": 5},
+      "fieldConfig": {"defaults": {"unit": "percent", "decimals": 2, "min": 0, "max": 100,
+        "thresholds": {"steps": [{"color": "red", "value": 0}, {"color": "yellow", "value": 95}, {"color": "green", "value": 99}]},
+        "color": {"mode": "thresholds"}}},
+      "options": {"reduceOptions": {"calcs": ["mean"]}, "colorMode": "background", "graphMode": "none"},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "avg_over_time(up{job=\"vllm\"}[$__range]) * 100",
+        "legendFormat": "Uptime %"}]
+    },
+
+    {"id": 101, "type": "row", "title": "Today (Always Last 24h)", "gridPos": {"x": 0, "y": 6, "w": 24, "h": 1}, "collapsed": false},
+
+    {
+      "id": 7, "type": "stat", "title": "Requests Today",
+      "gridPos": {"x": 0, "y": 7, "w": 6, "h": 4},
+      "fieldConfig": {"defaults": {"decimals": 0,
+        "thresholds": {"steps": [{"color": "blue", "value": 0}, {"color": "green", "value": 10}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "increase(vllm:request_success_total[24h])",
+        "instant": true, "legendFormat": "Today"}]
+    },
+    {
+      "id": 8, "type": "stat", "title": "Tokens Generated Today",
+      "gridPos": {"x": 6, "y": 7, "w": 6, "h": 4},
+      "fieldConfig": {"defaults": {"decimals": 0,
+        "thresholds": {"steps": [{"color": "blue", "value": 0}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "increase(vllm:generation_tokens_total[24h])",
+        "instant": true, "legendFormat": "Today"}]
+    },
+    {
+      "id": 9, "type": "stat", "title": "Cost Today",
+      "gridPos": {"x": 12, "y": 7, "w": 6, "h": 4},
+      "fieldConfig": {"defaults": {"decimals": 2,
+        "thresholds": {"steps": [{"color": "green", "value": 0}, {"color": "yellow", "value": 2}, {"color": "red", "value": 5}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "(\n  increase(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[24h]) / 1e6 / 3600\n  + ($server_idle_watts * 24 / 1000)\n) * $electricity_price_usd * (1 + $currency * ($usd_to_khr - 1))",
+        "instant": true, "legendFormat": "Today"}]
+    },
+    {
+      "id": 10, "type": "stat", "title": "Avg Tokens Per Request Today",
+      "description": "How long are users' conversations?",
+      "gridPos": {"x": 18, "y": 7, "w": 6, "h": 4},
+      "fieldConfig": {"defaults": {"decimals": 0,
+        "thresholds": {"steps": [{"color": "blue", "value": 0}]}}},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "increase(vllm:generation_tokens_total[24h]) / clamp_min(increase(vllm:request_success_total[24h]), 1)",
+        "instant": true, "legendFormat": "Avg tokens/req"}]
+    },
+
+    {"id": 102, "type": "row", "title": "Usage Trends", "gridPos": {"x": 0, "y": 11, "w": 24, "h": 1}, "collapsed": false},
+
+    {
+      "id": 11, "type": "timeseries", "title": "Request Volume Over Time",
+      "description": "AI requests per hour. Shows peak usage times and adoption growth.",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"fillOpacity": 20, "lineWidth": 2}}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "increase(vllm:request_success_total[1h])",
+        "legendFormat": "Requests/hr"}]
+    },
+    {
+      "id": 12, "type": "timeseries", "title": "Token Volume Over Time",
+      "description": "Tokens generated per hour — shows actual AI workload.",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"fillOpacity": 20, "lineWidth": 2}}},
+      "targets": [
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "increase(vllm:generation_tokens_total[1h])",
+          "legendFormat": "Output tokens/hr"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "increase(vllm:prompt_tokens_total[1h])",
+          "legendFormat": "Input tokens/hr"}
+      ]
+    },
+
+    {"id": 103, "type": "row", "title": "Financial Trends", "gridPos": {"x": 0, "y": 20, "w": 24, "h": 1}, "collapsed": false},
+
+    {
+      "id": 13, "type": "timeseries", "title": "Cumulative Operating Cost",
+      "description": "Total electricity cost accumulating over the selected time range.",
+      "gridPos": {"x": 0, "y": 21, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"decimals": 3, "custom": {"fillOpacity": 10, "lineWidth": 2}}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "(\n  (max_over_time(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[$__range]) - min_over_time(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[$__range])) / 1e6 / 3600\n  + ($server_idle_watts * ($__range_s / 3600) / 1000)\n) * $electricity_price_usd * (1 + $currency * ($usd_to_khr - 1))",
+        "legendFormat": "Cumulative Cost"}]
+    },
+    {
+      "id": 14, "type": "timeseries", "title": "Net Savings vs GPT-4o API",
+      "description": "Green above 0 = saving money vs cloud. Red below 0 = server costs more than API (need higher usage).",
+      "gridPos": {"x": 12, "y": 21, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"decimals": 3, "custom": {"fillOpacity": 10, "lineWidth": 2},
+        "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 0}]}}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "(\n  (max_over_time(vllm:generation_tokens_total[$__range]) - min_over_time(vllm:generation_tokens_total[$__range])) / 1000 * 0.010\n  - (\n    (max_over_time(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[$__range]) - min_over_time(DCGM_FI_DEV_TOTAL_ENERGY_CONSUMPTION[$__range])) / 1e6 / 3600\n    + ($server_idle_watts * ($__range_s / 3600) / 1000)\n  ) * $electricity_price_usd\n) * (1 + $currency * ($usd_to_khr - 1))",
+        "legendFormat": "Net Savings vs GPT-4o"}]
+    },
+
+    {"id": 104, "type": "row", "title": "Performance", "gridPos": {"x": 0, "y": 29, "w": 24, "h": 1}, "collapsed": false},
+
+    {
+      "id": 15, "type": "timeseries", "title": "Response Time (End-to-End)",
+      "description": "p50 = typical user experience. p95 = slowest 5% of requests.",
+      "gridPos": {"x": 0, "y": 30, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "s", "custom": {"lineWidth": 2}}},
+      "targets": [
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "histogram_quantile(0.5, rate(vllm:e2e_request_latency_seconds_bucket[1h]))",
+          "legendFormat": "p50 (typical)"},
+        {"datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "histogram_quantile(0.95, rate(vllm:e2e_request_latency_seconds_bucket[1h]))",
+          "legendFormat": "p95 (slowest 5%)"}
+      ]
+    },
+    {
+      "id": 16, "type": "timeseries", "title": "GPU Utilization Over Time",
+      "description": "Higher = better value for money. Consistently low = server is underutilized.",
+      "gridPos": {"x": 12, "y": 30, "w": 12, "h": 8},
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100,
+        "custom": {"fillOpacity": 20, "lineWidth": 2}}},
+      "targets": [{"datasource": {"type": "prometheus", "uid": "prometheus"},
+        "expr": "DCGM_FI_DEV_GPU_UTIL",
+        "legendFormat": "GPU Util %"}]
+    }
+  ]
+}

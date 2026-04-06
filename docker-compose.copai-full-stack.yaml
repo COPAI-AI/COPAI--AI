@@ -1,0 +1,418 @@
+# COPAI Ministry RAG — Full Stack
+# All services use network_mode: host — no Docker networking needed
+#
+# Usage:
+#   cp .env.copai-full-stack .env   # fill in secrets
+#   docker compose -f docker-compose.copai-full-stack.yaml up -d
+#
+# See copai-complete-setup-guide.md for detailed instructions
+
+services:
+
+  # ── LLM Server ──────────────────────────────────────────
+  vllm:
+    image: vllm/vllm-openai:gemma4
+    container_name: copai-vllm
+    network_mode: host
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
+      - HF_HOME=/root/.cache/huggingface
+      - GLOO_SOCKET_IFNAME=lo
+      - TORCH_CUDA_ARCH_LIST=8.6
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+    command: >
+      google/gemma-4-E4B-it
+      --served-model-name gemma4-e4b
+      --host 0.0.0.0
+      --port 8000
+      --max-model-len 65536
+      --gpu-memory-utilization 0.82
+      --max-num-seqs 96
+      --max-num-batched-tokens 16384
+      --enable-prefix-caching
+      --limit-mm-per-prompt '{"image": 2, "audio": 0}'
+      --trust-remote-code
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
+
+  # ── Vector Database ─────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: copai-qdrant
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
+
+  # ── Open WebUI ──────────────────────────────────────────
+  open-webui:
+    build:
+      context: .
+      args:
+        OLLAMA_BASE_URL: '/ollama'
+        USE_CUDA: 'true'
+      dockerfile: Dockerfile
+      network: host
+    image: copai-webui:full-stack
+    container_name: copai-webui
+    network_mode: host
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    depends_on:
+      vllm:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+    volumes:
+      - open_webui_data:/app/backend/data
+      - ./static:/app/static/custom:ro
+    environment:
+      # LLM — vLLM via OpenAI-compatible API
+      - OPENAI_API_BASE_URL=http://127.0.0.1:8000/v1
+      - OPENAI_API_KEY=not-required
+      - OLLAMA_BASE_URL=
+
+      # Auth
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - WEBUI_URL=${WEBUI_URL}
+      - CORS_ALLOW_ORIGIN=${WEBUI_URL}
+      - PORT=${OPEN_WEBUI_PORT:-8080}
+
+      # Vector store
+      - VECTOR_DB=qdrant
+      - QDRANT_URI=http://127.0.0.1:6333
+
+      # Embedding — loaded locally via sentence-transformers on GPU
+      - RAG_EMBEDDING_ENGINE=
+      - RAG_EMBEDDING_MODEL=BAAI/bge-m3
+      - RAG_EMBEDDING_DEVICE=cuda
+
+      # Content extraction — official Docling
+      - RAG_CONTENT_EXTRACTION_ENGINE=docling
+      - DOCLING_SERVER_URL=http://127.0.0.1:5001
+      - DOCLING_OCR_ENGINE=rapidocr
+      - DOCLING_PDF_BACKEND=dlparse_v4
+      - DOCLING_TABLE_MODE=accurate
+
+      # RAG performance
+      - RAG_SYSTEM_CONTEXT=true
+      - RAG_EMBEDDING_BATCH_SIZE=16
+      - ENABLE_ASYNC_EMBEDDING=true
+
+      # HTTP client identity
+      - USER_AGENT=COPAI/1.0
+
+      # Langfuse tracing
+      - ENABLE_LANGFUSE=true
+      - LANGFUSE_HOST=http://127.0.0.1:3000
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY}
+
+      # Disable broken features
+      - ENABLE_RAGAS_EVALUATION=false
+
+      # Google OAuth
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - OPENID_PROVIDER_URL=https://accounts.google.com/.well-known/openid-configuration
+      - ENABLE_OAUTH_SIGNUP=true
+      - OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true
+      - DEFAULT_USER_ROLE=pending
+      - OAUTH_UPDATE_PICTURE_ON_LOGIN=true
+
+  # ── Docling: LLM-ready document extraction (port 5002) ──
+  docling:
+    image: quay.io/docling-project/docling-serve-cu128
+    container_name: copai-docling
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - DOCLING_SERVE_ENABLE_UI=true
+      - UVICORN_WORKERS=1
+      - DOCLING_SERVE_MAX_SYNC_WAIT=600
+      # Worker threads — 16 of 32 cores, remaining for OMP/MKL per thread
+      - DOCLING_SERVE_ENG_LOC_NUM_WORKERS=16
+      - DOCLING_SERVE_ENG_LOC_SHARE_MODELS=true
+      # CPU mode — frees entire A40 GPU for vLLM
+      - DOCLING_SERVE_DEVICE=cpu
+      # Per-thread parallelism: 32 cores / 16 workers = 2 threads each
+      - OMP_NUM_THREADS=2
+      - MKL_NUM_THREADS=2
+      - DOCLING_NUM_THREADS=4
+      # Batch sizes for CPU throughput
+      - DOCLING_SERVE_LAYOUT_BATCH_SIZE=8
+      - DOCLING_SERVE_TABLE_BATCH_SIZE=4
+      - DOCLING_SERVE_OCR_BATCH_SIZE=8
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: ["docling-serve", "run", "--port", "5002"]
+
+  # ── Docling API shim: maps /v1alpha/ → /v1/ for Open WebUI 0.6.5 ──
+  docling-shim:
+    image: python:3.11-slim
+    container_name: copai-docling-shim
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      - docling
+    volumes:
+      - ./docling-shim/shim.py:/shim.py:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python3 /shim.py
+
+  # ── Langfuse: PostgreSQL ────────────────────────────────
+  langfuse-postgres:
+    image: postgres:15-alpine
+    container_name: copai-langfuse-postgres
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - PGPORT=5432
+    volumes:
+      - langfuse_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Langfuse: ClickHouse ────────────────────────────────
+  langfuse-clickhouse:
+    image: clickhouse/clickhouse-server:24.12
+    container_name: copai-langfuse-clickhouse
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - CLICKHOUSE_DB=default
+    volumes:
+      - langfuse_clickhouse:/var/lib/clickhouse
+      - ./clickhouse/single-node.xml:/etc/clickhouse-server/config.d/single-node.xml:ro
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Langfuse: Redis ─────────────────────────────────────
+  langfuse-redis:
+    image: redis:7-alpine
+    container_name: copai-langfuse-redis
+    network_mode: host
+    restart: unless-stopped
+    command: redis-server --port 6379
+    volumes:
+      - langfuse_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Langfuse: MinIO (blob storage) ──────────────────────
+  langfuse-minio:
+    image: minio/minio:latest
+    container_name: copai-langfuse-minio
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    command: server /data --address ":9010" --console-address ":9011"
+    volumes:
+      - langfuse_minio:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9010/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Langfuse: Web + Worker ──────────────────────────────
+  langfuse-web:
+    image: langfuse/langfuse:latest
+    container_name: copai-langfuse-web
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      langfuse-postgres:
+        condition: service_healthy
+      langfuse-clickhouse:
+        condition: service_healthy
+      langfuse-redis:
+        condition: service_healthy
+      langfuse-minio:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://127.0.0.1:9000
+      - CLICKHOUSE_URL=http://127.0.0.1:8123
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379
+      - REDIS_AUTH=
+      - BLOB_STORAGE_ENDPOINT=http://127.0.0.1:9010
+      - BLOB_STORAGE_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - BLOB_STORAGE_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - BLOB_STORAGE_BUCKET_NAME=langfuse
+      - BLOB_STORAGE_REGION=ap-southeast-1
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
+      - LANGFUSE_S3_EVENT_UPLOAD_REGION=ap-southeast-1
+      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://127.0.0.1:9010
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
+      - NEXTAUTH_URL=http://127.0.0.1:3000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - SALT=${LANGFUSE_SALT}
+      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=true
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:latest
+    container_name: copai-langfuse-worker
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      langfuse-postgres:
+        condition: service_healthy
+      langfuse-clickhouse:
+        condition: service_healthy
+      langfuse-redis:
+        condition: service_healthy
+      langfuse-minio:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@127.0.0.1:5432/${POSTGRES_DB}
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://127.0.0.1:9000
+      - CLICKHOUSE_URL=http://127.0.0.1:8123
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379
+      - REDIS_AUTH=
+      - BLOB_STORAGE_ENDPOINT=http://127.0.0.1:9010
+      - BLOB_STORAGE_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - BLOB_STORAGE_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - BLOB_STORAGE_BUCKET_NAME=langfuse
+      - BLOB_STORAGE_REGION=ap-southeast-1
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
+      - LANGFUSE_S3_EVENT_UPLOAD_REGION=ap-southeast-1
+      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://127.0.0.1:9010
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${MINIO_ROOT_PASSWORD}
+      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
+      - SALT=${LANGFUSE_SALT}
+      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}
+
+  # ── NVIDIA GPU Exporter ─────────────────────────────────
+  dcgm-exporter:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:latest
+    container_name: copai-dcgm-exporter
+    network_mode: host
+    restart: unless-stopped
+    cap_add:
+      - SYS_ADMIN
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - DCGM_EXPORTER_LISTEN=:9400
+      - DCGM_EXPORTER_KUBERNETES=false
+
+  # ── Prometheus ──────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: copai-prometheus
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.listen-address=0.0.0.0:9090
+
+  # ── Node Exporter (host metrics) ────────────────────────
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: copai-node-exporter
+    network_mode: host
+    restart: unless-stopped
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --web.listen-address=0.0.0.0:9100
+
+  # ── Grafana ─────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: copai-grafana
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SERVER_HTTP_PORT=3001
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://127.0.0.1:3001
+
+volumes:
+  open_webui_data:
+  qdrant_data:
+  langfuse_postgres:
+  langfuse_clickhouse:
+  langfuse_redis:
+  langfuse_minio:
+  prometheus_data:
+  grafana_data:

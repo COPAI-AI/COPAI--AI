@@ -46,7 +46,6 @@
 		{ name: 'Sakhan Povvoliak ', image: '/assets/images/Sakhan_Povvoliak.png' },
 		{ name: 'Leavchum Sopanha ', image: '/assets/images/Sopanha.png' },
 		{ name: 'Chab Sreylen ', image: '/assets/images/Sreylen.png' },
-		
 		{ name: 'Sun Heng ', image: '/assets/images/Heng.png' },
 		{ name: 'Nang Chettra ', image: '/assets/images/chetta.png' },
 		{ name: 'Sun Songqi ', image: '/assets/images/Songqi.png' },

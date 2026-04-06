@@ -18,3 +18,7 @@ uploads
 **/*.db
 _test
 backend/data/*
+
+# Model weights — mounted as volume at runtime, never needed in build context
+models/
+*.safetensors

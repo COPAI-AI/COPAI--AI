@@ -1,4 +1,5 @@
 .DS_Store
+.claude/
 node_modules
 /build
 /.svelte-kit
@@ -307,3 +308,6 @@ dist
 cypress/videos
 cypress/screenshots
 .vscode/settings.json
+
+# Local docs (not for version control)
+docs/superpowers/
