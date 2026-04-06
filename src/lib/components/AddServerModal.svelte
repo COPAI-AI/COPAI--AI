@@ -12,6 +12,7 @@
 	import Minus from '$lib/components/icons/Minus.svelte';
 	import PencilSolid from '$lib/components/icons/PencilSolid.svelte';
 	import SensitiveInput from '$lib/components/common/SensitiveInput.svelte';
+	import SelectDropdown from '$lib/components/common/SelectDropdown.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
 	import Switch from '$lib/components/common/Switch.svelte';
 	import Tags from './common/Tags.svelte';
@@ -138,8 +139,8 @@
 	});
 </script>
 
-<Modal size="sm" bind:show>
-	<div class="max-h-[85vh] overflow-hidden rounded-xl bg-white dark:bg-gray-950">
+<Modal size="md" bind:show>
+	<div class="max-h-[90vh] overflow-hidden rounded-xl bg-white dark:bg-gray-950">
 		<div class="flex justify-between items-center dark:text-gray-100 px-4 sm:px-5 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/40">
 			<div class="text-lg font-semibold self-center font-primary text-gray-900 dark:text-gray-100">
 				{#if edit}
@@ -245,34 +246,46 @@
 						</div>
 
 						<div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 p-3 sm:p-4">
-							<div class="flex flex-col w-full">
-								<div class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">{$i18n.t('Auth')}</div>
+							<div class="flex flex-col w-full space-y-3">
+								<div class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{$i18n.t('Auth')}</div>
 
-								<div class="flex gap-2 items-center">
-									<div class="flex-shrink-0 self-start">
-										<select
-											class="min-w-[108px] text-sm bg-gray-50 dark:bg-gray-850 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 outline-hidden"
-											bind:value={auth_type}
-										>
-											<option value="bearer">Bearer</option>
-											<option value="session">Session</option>
-										</select>
+								<div class="flex flex-col w-full gap-3">
+									<div class="flex flex-col w-full gap-1.5">
+										<label class="text-xs font-medium text-gray-700 dark:text-gray-300">Type</label>
+										<div class="w-full">
+											<SelectDropdown
+												value={auth_type}
+												options={[
+													{ value: 'bearer', label: 'Bearer' },
+													{ value: 'session', label: 'Session' }
+												]}
+												on:change={(e) => {
+													auth_type = e.detail.value;
+												}}
+											/>
+										</div>
 									</div>
 
-									<div class="flex flex-1 items-center">
-										{#if auth_type === 'bearer'}
+									{#if auth_type === 'bearer'}
+										<div class="flex flex-col w-full gap-1.5">
+											<label class="text-xs font-medium text-gray-700 dark:text-gray-300">API Key</label>
 											<SensitiveInput
 												inputClassName="w-full text-sm"
 												bind:value={key}
-												placeholder={$i18n.t('API Key')}
+												placeholder={$i18n.t('Enter your API key')}
 												required={false}
 											/>
-										{:else if auth_type === 'session'}
-											<div class="text-xs text-gray-500 self-center translate-y-[1px]">
+										</div>
+									{:else if auth_type === 'session'}
+										<div class="flex items-start gap-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200/50 dark:border-blue-800/30">
+											<svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+												<path fill-rule="evenodd" d="M18 5v12a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-2-4a2 2 0 00-2-2H8a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V1z" clip-rule="evenodd" />
+											</svg>
+											<div class="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
 												{$i18n.t('Forwards system user session credentials to authenticate')}
 											</div>
-										{/if}
-									</div>
+										</div>
+									{/if}
 								</div>
 							</div>
 						</div>

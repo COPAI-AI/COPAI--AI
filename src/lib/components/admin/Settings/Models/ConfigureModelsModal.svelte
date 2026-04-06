@@ -11,6 +11,7 @@
 	import Modal from '$lib/components/common/Modal.svelte';
 	import ConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
+	import SelectDropdown from '$lib/components/common/SelectDropdown.svelte';
 	import ModelList from './ModelList.svelte';
 	import { getModelsConfig, setModelsConfig } from '$lib/apis/configs';
 	import Spinner from '$lib/components/common/Spinner.svelte';
@@ -207,18 +208,19 @@
 							</label>
 
 							<!-- Select Dropdown -->
-							<select
-								class="w-full px-3 py-2.5 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg {selectedModelId
-									? 'text-gray-900 dark:text-gray-100'
-									: 'text-gray-500 dark:text-gray-400'} focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all duration-200"
-								bind:value={selectedModelId}
-							>
-								<option value="">{$i18n.t('Select a model')}</option>
-								{#each $models as model}
-									<option value={model.id} class="bg-white dark:bg-gray-800">{model.name}</option>
-								{/each}
-							</select>
+					<div class="relative">
+						<SelectDropdown
 
+							value={selectedModelId}
+							options={[
+								{ value: '', label: $i18n.t('Select a model') },
+								...$models.map((model) => ({ value: model.id, label: model.name }))
+							]}
+							on:change={(e) => {
+								selectedModelId = e.detail.value;
+							}}
+						/>
+					</div>
 							<!-- Selected Models List -->
 							<div class="min-h-[80px] p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg">
 								{#if defaultModelIds.length > 0}

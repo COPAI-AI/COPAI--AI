@@ -233,16 +233,21 @@
 		saveHandler();
 	}}
 >
-	<div class=" space-y-3 overflow-y-auto scrollbar-hidden pr-2">
+	<div class=" space-y-3 overflow-y-auto scrollbar-hidden pr-2" style="padding-bottom: 50px; gap: 20px;">
 		{#if config && imageGenerationConfig}
-			<div>
-				<div class=" mb-1 text-sm font-medium">{$i18n.t('Image Settings')}</div>
+			<!-- Image Settings Section -->
+			<div style="background: linear-gradient(to bottom, rgba(0,0,0,0.02), transparent); border-radius: 12px; padding: 20px; border: 1px solid rgba(0,0,0,0.05);">
+				<div class="mb-4 flex items-center gap-2">
+					<div class="w-1 h-6 bg-orange-500 rounded-sm"></div>
+					<div class="text-base font-medium text-gray-800 dark:text-gray-200 tracking-tight">
+						{$i18n.t('Image Settings')}
+					</div>
+				</div>
 
-				<div>
-					<div class=" py-1 flex w-full justify-between">
-						<div class=" self-center text-xs font-medium">
-							{$i18n.t('Image Generation (Experimental)')}
-						</div>
+				<div style="background: white; border-radius: 10px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.06); space-y-3;">
+					<div class="space-y-3">
+				<div class="py-0.5 flex w-full flex-col gap-2 sm:flex-row sm:justify-between sm:items-center" style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.04);">
+					<div class="self-center text-xs font-medium" style="color: #374151; font-size: 13px;">{$i18n.t('Image Generation')}</div>
 
 						<div class="px-1">
 							<Switch
@@ -288,10 +293,11 @@
 					</div>
 				{/if}
 
-				<div class="py-1 flex w-full flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
-					<div class=" self-center text-xs font-medium">{$i18n.t('Image Generation Engine')}</div>
-					<div class="w-full sm:w-auto">
+				<div class="py-0.5 flex w-full flex-col gap-2 sm:flex-row sm:justify-between sm:items-center" style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.04); margin-top: 14px;">
+					<div class="self-center text-xs font-medium" style="color: #374151; font-size: 13px;">{$i18n.t('Image Generation Engine')}</div>
+					<div class="w-full sm:w-auto relative">
 						<SelectDropdown
+							align="right"
 							value={config.engine}
 							options={[
 								{ value: 'openai', label: 'Default (Open AI)' },
@@ -306,13 +312,14 @@
 						/>
 					</div>
 				</div>
+				</div>
 			</div>
-			<hr class=" border-gray-100 dark:border-gray-850" />
+			
 
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2" style="margin-top: 20px;">
 				{#if (config?.engine ?? 'automatic1111') === 'automatic1111'}
-					<div>
-						<div class=" mb-2 text-sm font-medium">{$i18n.t('AUTOMATIC1111 Base URL')}</div>
+					<div style="padding: 12px; background: #f9fafb; border-radius: 8px; border: 1px solid rgba(0,0,0,0.06);">
+						<div class=" mb-2 text-sm font-medium" style="color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px;">{$i18n.t('AUTOMATIC1111 Base URL')}</div>
 						<div class="flex w-full">
 							<div class="flex-1 mr-2">
 								<input
@@ -322,7 +329,7 @@
 								/>
 							</div>
 							<button
-								class="px-2.5 bg-gray-50 hover:bg-gray-100 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-100 rounded-lg transition"
+								class="px-3 py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
 								type="button"
 								on:click={async () => {
 									await updateConfigHandler();
@@ -447,8 +454,8 @@
 						</div>
 					</div>
 				{:else if config?.engine === 'comfyui'}
-					<div class="">
-						<div class=" mb-2 text-sm font-medium">{$i18n.t('ComfyUI Base URL')}</div>
+					<div style="padding: 12px; background: #f9fafb; border-radius: 8px; border: 1px solid rgba(0,0,0,0.06);">
+						<div class=" mb-2 text-sm font-medium" style="color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px;">{$i18n.t('ComfyUI Base URL')}</div>
 						<div class="flex w-full">
 							<div class="flex-1 mr-2">
 								<input
@@ -458,7 +465,7 @@
 								/>
 							</div>
 							<button
-								class="px-2.5 bg-gray-50 hover:bg-gray-100 text-gray-800 dark:bg-gray-850 dark:hover:bg-gray-800 dark:text-gray-100 rounded-lg transition"
+								class="px-3 py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
 								type="button"
 								on:click={async () => {
 									await updateConfigHandler();
@@ -700,9 +707,9 @@
 		{/if}
 	</div>
 
-	<div class="flex justify-end pt-3 text-sm font-medium">
+	<div class="flex justify-end text-sm font-medium" style="border-top: 1px solid rgba(0,0,0,0.08); padding-top: 16px;">
 		<button
-			class="px-3.5 py-1.5 text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white transition rounded-lg"
+			class="px-3.5 py-1.5 text-sm font-medium bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white transition rounded-lg shadow-md hover:shadow-lg"
 			type="submit"
 			disabled={loading}
 		>

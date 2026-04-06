@@ -284,8 +284,9 @@
 						<!-- Default User Role -->
 						<div class="flex w-full flex-col sm:flex-row justify-between items-start sm:items-center gap-2 py-2 border-b border-gray-200/60 dark:border-gray-700/40">
 							<div class="self-center text-sm font-medium text-gray-800 dark:text-gray-200">{$i18n.t('Default User Role')}</div>
-							<div class="w-full sm:w-auto">
+							<div class="w-full sm:w-auto relative">
 								<SelectDropdown
+									align="right"
 									value={adminConfig.DEFAULT_USER_ROLE}
 									options={[
 										{ value: 'pending', label: $i18n.t('pending') },

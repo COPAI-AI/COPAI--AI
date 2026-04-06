@@ -173,7 +173,7 @@
 		dispatch('save');
 	}}
 >
-	<div class="space-y-3 overflow-y-auto scrollbar-hidden h-full" style="padding-right: 4px;">
+	<div class="space-y-3 overflow-y-auto scrollbar-hidden h-full" style="padding-right: 4px; padding-bottom: 70px;">
 		<div class="flex flex-col gap-3" style="gap: 20px;">
 			<!-- STT Settings Section -->
 			<div style="background: linear-gradient(to bottom, rgba(0,0,0,0.02), transparent); border-radius: 12px; padding: 20px; border: 1px solid rgba(0,0,0,0.05);">
@@ -188,8 +188,9 @@
 					<!-- Speech-to-Text Engine -->
 					<div class="py-0.5 flex w-full flex-col gap-2 sm:flex-row sm:justify-between sm:items-center" style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.04);">
 						<div class="self-center text-xs font-medium" style="color: #374151; font-size: 13px;">{$i18n.t('Speech-to-Text Engine')}</div>
-						<div class="w-full sm:w-auto">
-							<SelectDropdown
+					<div class="w-full sm:w-auto relative">
+						<SelectDropdown
+							align="right"
 								value={STT_ENGINE}
 								options={[
 									{ value: '', label: $i18n.t('Whisper (Local)') },
@@ -410,8 +411,9 @@
 					<!-- Text-to-Speech Engine -->
 					<div class="py-0.5 flex w-full flex-col gap-2 sm:flex-row sm:justify-between sm:items-center" style="padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.04);">
 						<div class="self-center text-xs font-medium" style="color: #374151; font-size: 13px;">{$i18n.t('Text-to-Speech Engine')}</div>
-						<div class="w-full sm:w-auto">
+						<div class="w-full sm:w-auto relative">
 							<SelectDropdown
+								align="right"
 								value={TTS_ENGINE}
 								options={[
 									{ value: '', label: $i18n.t('Web API') },
@@ -436,6 +438,7 @@
 								}}
 							/>
 						</div>
+					</div>
 					</div>
 
 					<!-- Engine-specific Configuration -->
@@ -692,8 +695,9 @@
 					<!-- Response Splitting -->
 					<div class="pt-0.5 flex w-full flex-col gap-2 sm:flex-row sm:justify-between sm:items-center" style="padding: 8px 0;">
 						<div class="self-center text-xs font-medium" style="color: #374151; font-size: 13px;">{$i18n.t('Response splitting')}</div>
-						<div class="w-full sm:w-auto">
-							<SelectDropdown
+					<div class="w-full sm:w-auto relative">
+						<SelectDropdown
+							align="right"
 								value={TTS_SPLIT_ON}
 								options={Object.values(TTS_RESPONSE_SPLIT).map((split) => ({
 									value: split,
@@ -711,7 +715,7 @@
 				</div>
 			</div>
 		</div>
-	</div>
+	
 	<div class="flex justify-end text-sm font-medium" style="border-top: 1px solid rgba(0,0,0,0.08); padding-top: 16px;">
 		<button
 			class="px-3.5 py-1.5 text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white transition rounded-lg"

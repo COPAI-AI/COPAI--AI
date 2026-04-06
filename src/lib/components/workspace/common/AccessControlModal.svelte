@@ -14,13 +14,14 @@
 </script>
 
 <Modal size="sm" bind:show>
-	<div>
-		<div class=" flex justify-between dark:text-gray-100 px-5 pt-3 pb-1">
-			<div class=" text-lg font-medium self-center font-primary">
+	<div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden">
+		<!-- Header -->
+		<div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
+			<h3 class="text-lg font-bold text-gray-900 dark:text-white">
 				{$i18n.t('Access Control')}
-			</div>
+			</h3>
 			<button
-				class="self-center"
+				class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
 				on:click={() => {
 					show = false;
 				}}
@@ -29,7 +30,7 @@
 					xmlns="http://www.w3.org/2000/svg"
 					viewBox="0 0 20 20"
 					fill="currentColor"
-					class="w-5 h-5"
+					class="w-5 h-5 text-gray-500 dark:text-gray-400"
 				>
 					<path
 						d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
@@ -38,7 +39,8 @@
 			</button>
 		</div>
 
-		<div class="w-full px-5 pb-4 dark:text-white">
+		<!-- Content -->
+		<div class="px-6 py-6">
 			<AccessControl bind:accessControl {onChange} {accessRoles} {allowPublic} />
 		</div>
 	</div>
