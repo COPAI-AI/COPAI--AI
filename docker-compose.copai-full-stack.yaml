@@ -26,20 +26,21 @@ services:
       - ~/.cache/huggingface:/root/.cache/huggingface
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+      - CUDA_VISIBLE_DEVICES=0
       - HF_HOME=/root/.cache/huggingface
       - GLOO_SOCKET_IFNAME=lo
+      - TORCH_CUDA_ARCH_LIST=8.6
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
     command: >
       google/gemma-4-E4B-it
       --served-model-name gemma4-e4b
       --host 0.0.0.0
       --port 8000
       --max-model-len 65536
-      --gpu-memory-utilization 0.92
-      --max-num-seqs 16
-      --max-num-batched-tokens 8192
+      --gpu-memory-utilization 0.90
+      --max-num-seqs 96
+      --max-num-batched-tokens 16384
       --enable-prefix-caching
-      --enable-chunked-prefill
-      --async-scheduling
       --limit-mm-per-prompt '{"image": 2, "audio": 0}'
       --trust-remote-code
     healthcheck:
@@ -145,9 +146,19 @@ services:
       - DOCLING_SERVE_ENABLE_UI=true
       - UVICORN_WORKERS=1
       - DOCLING_SERVE_MAX_SYNC_WAIT=600
-      - DOCLING_SERVE_ENG_LOC_NUM_WORKERS=4
-      - OMP_NUM_THREADS=8
-      - MKL_NUM_THREADS=8
+      # Worker threads — 16 of 32 cores, remaining for OMP/MKL per thread
+      - DOCLING_SERVE_ENG_LOC_NUM_WORKERS=16
+      - DOCLING_SERVE_ENG_LOC_SHARE_MODELS=true
+      # CPU mode — frees entire A40 GPU for vLLM
+      - DOCLING_SERVE_DEVICE=cpu
+      # Per-thread parallelism: 32 cores / 16 workers = 2 threads each
+      - OMP_NUM_THREADS=2
+      - MKL_NUM_THREADS=2
+      - DOCLING_NUM_THREADS=4
+      # Batch sizes for CPU throughput
+      - DOCLING_SERVE_LAYOUT_BATCH_SIZE=8
+      - DOCLING_SERVE_TABLE_BATCH_SIZE=4
+      - DOCLING_SERVE_OCR_BATCH_SIZE=8
     deploy:
       resources:
         reservations:
