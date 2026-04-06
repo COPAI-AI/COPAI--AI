@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep:*)",
+      "Bash(grep:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.openwebui.com)",
+      "WebFetch(domain:docs.ollama.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(python3:*)",
+      "Bash(pip show:*)",
+      "Bash(python:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:reference.langchain.com)",
+      "WebFetch(domain:pypdf.readthedocs.io)",
+      "Bash(find:*)",
+      "Bash(openssl rand:*)",
+      "WebFetch(domain:langfuse.com)",
+      "WebFetch(domain:docs.langfuse.com)",
+      "Read(//etc/**)",
+      "Bash(sudo find:*)",
+      "Bash(sudo nginx:*)",
+      "Bash(nginx -v)",
+      "Read(//d/cloud/Documents/work/COPAI/**)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/DS4SD/docling-serve/main/README.md\")",
+      "Bash(curl -s \"https://api.github.com/repos/DS4SD/docling-serve/issues?state=open&labels=&per_page=50\")"
+    ]
+  }
+}

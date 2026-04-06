@@ -1,0 +1,27 @@
+services:
+  open-webui:
+    build:
+      context: .
+      args:
+        OLLAMA_BASE_URL: '/ollama'
+      dockerfile: Dockerfile
+    image: copai-webui:gpu
+    container_name: copai-webui
+    volumes:
+      - open-webui:/app/backend/data
+      - ./static:/app/static/custom:ro
+    network_mode: host
+    environment:
+      - 'OLLAMA_BASE_URL=http://127.0.0.1:11434'
+      - 'WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}'
+      - 'WEBUI_URL=https://chat.copai.ai'
+      - 'PORT=${OPEN_WEBUI_PORT-8080}'
+      - 'ENABLE_LANGFUSE=${ENABLE_LANGFUSE:-false}'
+      - 'LANGFUSE_HOST=${LANGFUSE_HOST:-http://127.0.0.1:3000}'
+      - 'LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}'
+      - 'LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}'
+      - 'ENABLE_RAGAS_EVALUATION=${ENABLE_RAGAS_EVALUATION:-false}'
+    restart: unless-stopped
+
+volumes:
+  open-webui: {}

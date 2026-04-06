@@ -1,0 +1,83 @@
+services:
+  langfuse-web:
+    image: langfuse/langfuse:2
+    container_name: langfuse-web
+    network_mode: host
+    environment:
+      - DATABASE_URL=postgresql://langfuse:${LANGFUSE_DB_PASSWORD}@127.0.0.1:5433/langfuse
+      - CLICKHOUSE_URL=http://127.0.0.1:8123
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://127.0.0.1:9000
+      - CLICKHOUSE_USER=langfuse
+      - CLICKHOUSE_PASSWORD=${LANGFUSE_CLICKHOUSE_PASSWORD}
+      - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${LANGFUSE_NEXTAUTH_URL:-http://localhost:3000}
+      - SALT=${LANGFUSE_SALT}
+      - PORT=3000
+      - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES=true
+    depends_on:
+      langfuse-postgres:
+        condition: service_healthy
+      langfuse-clickhouse:
+        condition: service_healthy
+    restart: unless-stopped
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:2
+    container_name: langfuse-worker
+    network_mode: host
+    environment:
+      - DATABASE_URL=postgresql://langfuse:${LANGFUSE_DB_PASSWORD}@127.0.0.1:5433/langfuse
+      - CLICKHOUSE_URL=http://127.0.0.1:8123
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://127.0.0.1:9000
+      - CLICKHOUSE_USER=langfuse
+      - CLICKHOUSE_PASSWORD=${LANGFUSE_CLICKHOUSE_PASSWORD}
+      - SALT=${LANGFUSE_SALT}
+    depends_on:
+      langfuse-postgres:
+        condition: service_healthy
+      langfuse-clickhouse:
+        condition: service_healthy
+    restart: unless-stopped
+
+  langfuse-postgres:
+    image: postgres:15
+    container_name: langfuse-postgres
+    network_mode: host
+    environment:
+      - POSTGRES_USER=langfuse
+      - POSTGRES_PASSWORD=${LANGFUSE_DB_PASSWORD}
+      - POSTGRES_DB=langfuse
+      - PGPORT=5433
+    volumes:
+      - langfuse-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse -p 5433"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  langfuse-clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: langfuse-clickhouse
+    network_mode: host
+    environment:
+      - CLICKHOUSE_DB=langfuse
+      - CLICKHOUSE_USER=langfuse
+      - CLICKHOUSE_PASSWORD=${LANGFUSE_CLICKHOUSE_PASSWORD}
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - langfuse-clickhouse:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8123/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  langfuse-postgres: {}
+  langfuse-clickhouse: {}
