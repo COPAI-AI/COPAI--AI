@@ -74,6 +74,13 @@ services:
     container_name: copai-webui
     network_mode: host
     restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     depends_on:
       vllm:
         condition: service_healthy
