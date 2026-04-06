@@ -343,22 +343,32 @@
 						</button>
 					</div>
 
-					<div class="flex flex-col space-y-1" style="gap: 10px;">
+					<div class="flex flex-col space-y-3" style="gap: 16px;">
 						{#each banners as banner, bannerIdx}
-							<div class="flex justify-between" style="gap: 8px;">
+							<div
+								class="rounded-lg border overflow-hidden"
+								style="border: 1px solid rgba(0,0,0,0.08); background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
+							>
+								<!-- Top colored bar based on type -->
 								<div
-									class="flex flex-row flex-1 border rounded-xl border-gray-100 dark:border-gray-850"
-									style="background: #f9fafb; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; overflow: hidden;"
-								>
-									<div class="min-w-36 border-r border-gray-100 dark:border-gray-850 px-2 py-1">
+									style="height: 4px; background: {banner.type === 'info' ? '#3b82f6' : banner.type === 'warning' ? '#f59e0b' : banner.type === 'error' ? '#ef4444' : banner.type === 'success' ? '#10b981' : '#9ca3af'};"
+								></div>
+
+								<!-- Card content -->
+								<div style="padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+									<!-- Type selector -->
+									<div>
+										<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+											{$i18n.t('Type')}
+										</label>
 										<SelectDropdown
 											value={banner.type}
 											options={[
-												{ value: '', label: 'Type' },
-												{ value: 'info', label: 'Info' },
-												{ value: 'warning', label: 'Warning' },
-												{ value: 'error', label: 'Error' },
-												{ value: 'success', label: 'Success' }
+												{ value: '', label: 'Select type...' },
+												{ value: 'info', label: 'ℹ️ Info' },
+												{ value: 'warning', label: '⚠️ Warning' },
+												{ value: 'error', label: '❌ Error' },
+												{ value: 'success', label: '✅ Success' }
 											]}
 											on:change={(e) => {
 												banner.type = e.detail.value;
@@ -367,40 +377,56 @@
 										/>
 									</div>
 
-									<input
-										class="pr-5 py-1.5 text-xs w-full bg-transparent outline-hidden"
-										placeholder={$i18n.t('Content')}
-										bind:value={banner.content}
-										style="padding: 10px 14px; border: none; background: transparent;"
-									/>
+									<!-- Content input -->
+									<div>
+										<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+											{$i18n.t('Content')}
+										</label>
+										<textarea
+											class="w-full rounded-lg text-sm bg-gray-50 outline-hidden resize-none"
+											placeholder={$i18n.t('Enter banner message...')}
+											bind:value={banner.content}
+											rows="2"
+											style="padding: 10px 14px; border: 1px solid rgba(0,0,0,0.08); background: #f9fafb; font-family: inherit; transition: all 0.2s;"
+										/>
+									</div>
 
-									<div class="relative top-1.5 -left-2" style="display: flex; align-items: center; padding-right: 8px;">
-										<Tooltip content={$i18n.t('Dismissible')} className="flex h-fit items-center">
-											<Switch bind:state={banner.dismissible} />
-										</Tooltip>
+									<!-- Footer: toggles and delete -->
+									<div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.04);">
+										<div style="display: flex; align-items: center; gap: 12px;">
+											<Tooltip content={$i18n.t('Users can dismiss this banner')} className="flex h-fit items-center">
+												<div style="display: flex; align-items: center; gap: 8px;">
+													<span class="text-xs" style="color: #6b7280;">{$i18n.t('Dismissible')}</span>
+													<Switch bind:state={banner.dismissible} />
+												</div>
+											</Tooltip>
+										</div>
+
+										<button
+											class="p-1 rounded-md transition hover:bg-red-100"
+											type="button"
+											on:click={() => {
+												banners.splice(bannerIdx, 1);
+												banners = banners;
+											}}
+											title={$i18n.t('Delete')}
+											style="color: #dc2626; background: transparent; border: 1px solid transparent; cursor: pointer;"
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												viewBox="0 0 20 20"
+												fill="currentColor"
+												class="w-4 h-4"
+											>
+												<path
+													fill-rule="evenodd"
+													d="M8.75 1a.75.75 0 00-.75.75V4H3.5a.75.75 0 000 1.5h.84l1.02 13.5a.75.75 0 00.735.648h9.285a.75.75 0 00.735-.648L17.66 5.5h.84a.75.75 0 000-1.5H16V1.75a.75.75 0 00-.75-.75h-6.5zm0 2.5h5v2h-5v-2zM7.07 9a.75.75 0 10-1.414.447l.82 3.28a.75.75 0 001.456 0l.82-3.28zm2.576 0a.75.75 0 10-1.414.447l.82 3.28a.75.75 0 001.456 0l.82-3.28zm2.576 0a.75.75 0 10-1.414.447l.82 3.28a.75.75 0 001.456 0l.82-3.28z"
+													clip-rule="evenodd"
+												/>
+											</svg>
+										</button>
 									</div>
 								</div>
-
-								<button
-									class="px-2"
-									type="button"
-									on:click={() => {
-										banners.splice(bannerIdx, 1);
-										banners = banners;
-									}}
-									style="background: #fee2e2; color: #dc2626; border-radius: 8px; padding: 8px 12px; transition: all 0.2s; border: 1px solid rgba(220, 38, 38, 0.2);"
-								>
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 20 20"
-										fill="currentColor"
-										class="w-4 h-4"
-									>
-										<path
-											d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
-										/>
-									</svg>
-								</button>
 							</div>
 						{/each}
 					</div>

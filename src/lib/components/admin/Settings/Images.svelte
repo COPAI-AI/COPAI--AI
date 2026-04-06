@@ -318,138 +318,106 @@
 
 			<div class="flex flex-col gap-2" style="margin-top: 20px;">
 				{#if (config?.engine ?? 'automatic1111') === 'automatic1111'}
-					<div style="padding: 12px; background: #f9fafb; border-radius: 8px; border: 1px solid rgba(0,0,0,0.06);">
-						<div class=" mb-2 text-sm font-medium" style="color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px;">{$i18n.t('AUTOMATIC1111 Base URL')}</div>
-						<div class="flex w-full">
-							<div class="flex-1 mr-2">
-								<input
-									class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-									placeholder={$i18n.t('Enter URL (e.g. http://127.0.0.1:7860/)')}
-									bind:value={config.automatic1111.AUTOMATIC1111_BASE_URL}
+					<div style="border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 16px;">
+						<div class="text-sm font-semibold mb-4" style="color: #1f2937;">{$i18n.t('AUTOMATIC1111 Config')}</div>
+
+						<div class="space-y-4" style="gap: 16px;">
+							<!-- Base URL -->
+							<div>
+								<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+									{$i18n.t('Base URL')}
+								</label>
+								<div class="flex gap-2">
+									<input
+										class="flex-1 w-full rounded-lg py-2 px-4 text-sm outline-hidden"
+										placeholder="http://127.0.0.1:7860/"
+										bind:value={config.automatic1111.AUTOMATIC1111_BASE_URL}
+										style="border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb;"
+									/>
+									<button
+										class="px-3 py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-lg transition-all duration-200 text-xs font-medium"
+										type="button"
+										on:click={async () => {
+											await updateConfigHandler();
+											const res = await verifyConfigUrl(localStorage.token).catch((error) => {
+												toast.error(`${error}`);
+												return null;
+											});
+
+											if (res) {
+												toast.success($i18n.t('Server connection verified'));
+											}
+										}}
+									>
+										Test
+									</button>
+								</div>
+							</div>
+
+							<!-- API Auth -->
+							<div>
+								<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+									{$i18n.t('API Auth String')}
+								</label>
+								<SensitiveInput
+									placeholder="username:password"
+									bind:value={config.automatic1111.AUTOMATIC1111_API_AUTH}
+									required={false}
+									style="border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb; border-radius: 8px;"
 								/>
 							</div>
-							<button
-								class="px-3 py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center"
-								type="button"
-								on:click={async () => {
-									await updateConfigHandler();
-									const res = await verifyConfigUrl(localStorage.token).catch((error) => {
-										toast.error(`${error}`);
-										return null;
-									});
 
-									if (res) {
-										toast.success($i18n.t('Server connection verified'));
-									}
-								}}
-							>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 20 20"
-									fill="currentColor"
-									class="w-4 h-4"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z"
-										clip-rule="evenodd"
-									/>
-								</svg>
-							</button>
-						</div>
+							<!-- Sampler -->
+							<div>
+								<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+									{$i18n.t('Sampler')}
+								</label>
+								<input
+									list="sampler-list"
+									class="w-full rounded-lg py-2 px-4 text-sm outline-hidden"
+									placeholder="Euler a"
+									bind:value={config.automatic1111.AUTOMATIC1111_SAMPLER}
+									style="border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb;"
+								/>
 
-						<div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
-							{$i18n.t('Include `--api` flag when running stable-diffusion-webui')}
-							<a
-								class=" text-gray-300 font-medium"
-								href="https://github.com/AUTOMATIC1111/stable-diffusion-webui/discussions/3734"
-								target="_blank"
-							>
-								{$i18n.t('(e.g. `sh webui.sh --api`)')}
-							</a>
-						</div>
-					</div>
-
-					<div>
-						<div class=" mb-2 text-sm font-medium">
-							{$i18n.t('AUTOMATIC1111 Api Auth String')}
-						</div>
-						<SensitiveInput
-							placeholder={$i18n.t('Enter api auth string (e.g. username:password)')}
-							bind:value={config.automatic1111.AUTOMATIC1111_API_AUTH}
-							required={false}
-						/>
-
-						<div class="mt-2 text-xs text-gray-400 dark:text-gray-500">
-							{$i18n.t('Include `--api-auth` flag when running stable-diffusion-webui')}
-							<a
-								class=" text-gray-300 font-medium"
-								href="https://github.com/AUTOMATIC1111/stable-diffusion-webui/discussions/13993"
-								target="_blank"
-							>
-								{$i18n
-									.t('(e.g. `sh webui.sh --api --api-auth username_password`)')
-									.replace('_', ':')}
-							</a>
-						</div>
-					</div>
-
-					<!---Sampler-->
-					<div>
-						<div class=" mb-2.5 text-sm font-medium">{$i18n.t('Set Sampler')}</div>
-						<div class="flex w-full">
-							<div class="flex-1 mr-2">
-								<Tooltip content={$i18n.t('Enter Sampler (e.g. Euler a)')} placement="top-start">
-									<input
-										list="sampler-list"
-										class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-										placeholder={$i18n.t('Enter Sampler (e.g. Euler a)')}
-										bind:value={config.automatic1111.AUTOMATIC1111_SAMPLER}
-									/>
-
-									<datalist id="sampler-list">
-										{#each samplers ?? [] as sampler}
-											<option value={sampler}>{sampler}</option>
-										{/each}
-									</datalist>
-								</Tooltip>
+								<datalist id="sampler-list">
+									{#each samplers ?? [] as sampler}
+										<option value={sampler}>{sampler}</option>
+									{/each}
+								</datalist>
 							</div>
-						</div>
-					</div>
-					<!---Scheduler-->
-					<div>
-						<div class=" mb-2.5 text-sm font-medium">{$i18n.t('Set Scheduler')}</div>
-						<div class="flex w-full">
-							<div class="flex-1 mr-2">
-								<Tooltip content={$i18n.t('Enter Scheduler (e.g. Karras)')} placement="top-start">
-									<input
-										list="scheduler-list"
-										class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-										placeholder={$i18n.t('Enter Scheduler (e.g. Karras)')}
-										bind:value={config.automatic1111.AUTOMATIC1111_SCHEDULER}
-									/>
 
-									<datalist id="scheduler-list">
-										{#each schedulers ?? [] as scheduler}
-											<option value={scheduler}>{scheduler}</option>
-										{/each}
-									</datalist>
-								</Tooltip>
+							<!-- Scheduler -->
+							<div>
+								<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+									{$i18n.t('Scheduler')}
+								</label>
+								<input
+									list="scheduler-list"
+									class="w-full rounded-lg py-2 px-4 text-sm outline-hidden"
+									placeholder="Karras"
+									bind:value={config.automatic1111.AUTOMATIC1111_SCHEDULER}
+									style="border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb;"
+								/>
+
+								<datalist id="scheduler-list">
+									{#each schedulers ?? [] as scheduler}
+										<option value={scheduler}>{scheduler}</option>
+									{/each}
+								</datalist>
 							</div>
-						</div>
-					</div>
-					<!---CFG scale-->
-					<div>
-						<div class=" mb-2.5 text-sm font-medium">{$i18n.t('Set CFG Scale')}</div>
-						<div class="flex w-full">
-							<div class="flex-1 mr-2">
-								<Tooltip content={$i18n.t('Enter CFG Scale (e.g. 7.0)')} placement="top-start">
-									<input
-										class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-										placeholder={$i18n.t('Enter CFG Scale (e.g. 7.0)')}
-										bind:value={config.automatic1111.AUTOMATIC1111_CFG_SCALE}
-									/>
-								</Tooltip>
+
+							<!-- CFG Scale -->
+							<div>
+								<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+									{$i18n.t('CFG Scale')}
+								</label>
+								<input
+									class="w-full rounded-lg py-2 px-4 text-sm outline-hidden"
+									placeholder="7.0"
+									bind:value={config.automatic1111.AUTOMATIC1111_CFG_SCALE}
+									style="border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb;"
+								/>
 							</div>
 						</div>
 					</div>
@@ -604,39 +572,67 @@
 						</div>
 					{/if}
 				{:else if config?.engine === 'openai'}
-					<div>
-						<div class=" mb-1.5 text-sm font-medium">{$i18n.t('OpenAI API Config')}</div>
+					<div style="border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 16px;">
+						<div class="text-sm font-semibold mb-4" style="color: #1f2937;">{$i18n.t('OpenAI API Config')}</div>
 
-						<div class="flex gap-2 mb-1">
-							<input
-								class="flex-1 w-full text-sm bg-transparent outline-hidden"
-								placeholder={$i18n.t('API Base URL')}
-								bind:value={config.openai.OPENAI_API_BASE_URL}
-								required
-							/>
+						<div class="space-y-3" style="gap: 12px;">
+							<!-- API Base URL -->
+							<div>
+								<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+									{$i18n.t('API Base URL')} <span style="color: #ef4444;">*</span>
+								</label>
+								<input
+									class="w-full text-sm rounded-lg outline-hidden"
+									placeholder="https://api.openai.com/v1"
+									bind:value={config.openai.OPENAI_API_BASE_URL}
+									style="padding: 10px 14px; border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb;"
+									required
+								/>
+							</div>
 
-							<SensitiveInput
-								placeholder={$i18n.t('API Key')}
-								bind:value={config.openai.OPENAI_API_KEY}
-							/>
+							<!-- API Key -->
+							<div>
+								<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+									{$i18n.t('API Key')} <span style="color: #ef4444;">*</span>
+								</label>
+								<SensitiveInput
+									placeholder="sk-..."
+									bind:value={config.openai.OPENAI_API_KEY}
+									style="padding: 10px 14px; border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb; border-radius: 8px;"
+								/>
+							</div>
 						</div>
 					</div>
 				{:else if config?.engine === 'gemini'}
-					<div>
-						<div class=" mb-1.5 text-sm font-medium">{$i18n.t('Gemini API Config')}</div>
+					<div style="border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 16px;">
+						<div class="text-sm font-semibold mb-4" style="color: #1f2937;">{$i18n.t('Gemini API Config')}</div>
 
-						<div class="flex gap-2 mb-1">
-							<input
-								class="flex-1 w-full text-sm bg-transparent outline-none"
-								placeholder={$i18n.t('API Base URL')}
-								bind:value={config.gemini.GEMINI_API_BASE_URL}
-								required
-							/>
+						<div class="space-y-3" style="gap: 12px;">
+							<!-- API Base URL -->
+							<div>
+								<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+									{$i18n.t('API Base URL')} <span style="color: #ef4444;">*</span>
+								</label>
+								<input
+									class="w-full text-sm rounded-lg outline-hidden"
+									placeholder="https://generativelanguage.googleapis.com"
+									bind:value={config.gemini.GEMINI_API_BASE_URL}
+									style="padding: 10px 14px; border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb;"
+									required
+								/>
+							</div>
 
-							<SensitiveInput
-								placeholder={$i18n.t('API Key')}
-								bind:value={config.gemini.GEMINI_API_KEY}
-							/>
+							<!-- API Key -->
+							<div>
+								<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+									{$i18n.t('API Key')} <span style="color: #ef4444;">*</span>
+								</label>
+								<SensitiveInput
+									placeholder="AIzaSy..."
+									bind:value={config.gemini.GEMINI_API_KEY}
+									style="padding: 10px 14px; border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb; border-radius: 8px;"
+								/>
+							</div>
 						</div>
 					</div>
 				{/if}
@@ -645,61 +641,57 @@
 			{#if config?.enabled}
 				<hr class=" border-gray-100 dark:border-gray-850" />
 
-				<div>
-					<div class=" mb-2.5 text-sm font-medium">{$i18n.t('Set Default Model')}</div>
-					<div class="flex w-full">
-						<div class="flex-1 mr-2">
-							<div class="flex w-full">
-								<div class="flex-1">
-									<Tooltip content={$i18n.t('Enter Model ID')} placement="top-start">
-										<input
-											list="model-list"
-											class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-											bind:value={imageGenerationConfig.MODEL}
-											placeholder="Select a model"
-											required
-										/>
+				<div style="border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 16px;">
+					<div class="text-sm font-semibold mb-4" style="color: #1f2937;">{$i18n.t('Default Settings')}</div>
 
-										<datalist id="model-list">
-											{#each models ?? [] as model}
-												<option value={model.id}>{model.name}</option>
-											{/each}
-										</datalist>
-									</Tooltip>
-								</div>
-							</div>
+					<div class="space-y-4" style="gap: 16px;">
+						<!-- Set Default Model -->
+						<div>
+							<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+								{$i18n.t('Default Model')}
+							</label>
+							<input
+								list="model-list"
+								class="w-full rounded-lg py-2 px-4 text-sm outline-hidden"
+								bind:value={imageGenerationConfig.MODEL}
+								placeholder="Select a model"
+								style="border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb;"
+								required
+							/>
+
+							<datalist id="model-list">
+								{#each models ?? [] as model}
+									<option value={model.id}>{model.name}</option>
+								{/each}
+							</datalist>
 						</div>
-					</div>
-				</div>
 
-				<div>
-					<div class=" mb-2.5 text-sm font-medium">{$i18n.t('Set Image Size')}</div>
-					<div class="flex w-full">
-						<div class="flex-1 mr-2">
-							<Tooltip content={$i18n.t('Enter Image Size (e.g. 512x512)')} placement="top-start">
-								<input
-									class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-									placeholder={$i18n.t('Enter Image Size (e.g. 512x512)')}
-									bind:value={imageGenerationConfig.IMAGE_SIZE}
-									required
-								/>
-							</Tooltip>
+						<!-- Set Image Size -->
+						<div>
+							<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+								{$i18n.t('Image Size')}
+							</label>
+							<input
+								class="w-full rounded-lg py-2 px-4 text-sm outline-hidden"
+								placeholder="512x512"
+								bind:value={imageGenerationConfig.IMAGE_SIZE}
+								style="border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb;"
+								required
+							/>
 						</div>
-					</div>
-				</div>
 
-				<div>
-					<div class=" mb-2.5 text-sm font-medium">{$i18n.t('Set Steps')}</div>
-					<div class="flex w-full">
-						<div class="flex-1 mr-2">
-							<Tooltip content={$i18n.t('Enter Number of Steps (e.g. 50)')} placement="top-start">
-								<input
-									class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-									placeholder={$i18n.t('Enter Number of Steps (e.g. 50)')}
-									bind:value={imageGenerationConfig.IMAGE_STEPS}
-									required
-								/>
-							</Tooltip>
+						<!-- Set Steps -->
+						<div>
+							<label class="block text-xs font-medium mb-2" style="color: #6b7280;">
+								{$i18n.t('Steps')}
+							</label>
+							<input
+								class="w-full rounded-lg py-2 px-4 text-sm outline-hidden"
+								placeholder="50"
+								bind:value={imageGenerationConfig.IMAGE_STEPS}
+								style="border: 1px solid rgba(0, 0, 0, 0.1); background: #f9fafb;"
+								required
+							/>
 						</div>
 					</div>
 				</div>
