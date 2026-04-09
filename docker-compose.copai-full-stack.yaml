@@ -40,7 +40,6 @@ services:
       --gpu-memory-utilization 0.35
       --max-num-seqs 8
       --max-num-batched-tokens 16384
-      --kv-cache-dtype fp8
       --enable-prefix-caching
       --limit-mm-per-prompt '{"image": 2, "audio": 0}'
       --trust-remote-code
