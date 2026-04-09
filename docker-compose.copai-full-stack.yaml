@@ -36,10 +36,11 @@ services:
       --served-model-name gemma4-e4b
       --host 0.0.0.0
       --port 8000
-      --max-model-len 65536
-      --gpu-memory-utilization 0.82
-      --max-num-seqs 96
+      --max-model-len 16384
+      --gpu-memory-utilization 0.35
+      --max-num-seqs 8
       --max-num-batched-tokens 16384
+      --kv-cache-dtype fp8
       --enable-prefix-caching
       --limit-mm-per-prompt '{"image": 2, "audio": 0}'
       --trust-remote-code
@@ -121,8 +122,9 @@ services:
 
       # RAG performance
       - RAG_SYSTEM_CONTEXT=true
-      - RAG_EMBEDDING_BATCH_SIZE=16
+      - RAG_EMBEDDING_BATCH_SIZE=8
       - ENABLE_ASYNC_EMBEDDING=true
+      - PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
       # HTTP client identity
       - USER_AGENT=COPAI/1.0
