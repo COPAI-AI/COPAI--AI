@@ -503,6 +503,39 @@
 		box-shadow: 0 4px 15px rgba(249, 115, 22, 0.15);
 	}
 
+	.btn-back {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 14px;
+		border-radius: 999px;
+		border: 1px solid #e5e7eb;
+		background: white;
+		color: #374151;
+		font-size: 13px;
+		font-weight: 700;
+		transition: all 0.2s ease;
+		cursor: pointer;
+	}
+
+	.btn-back:hover {
+		border-color: #f97316;
+		color: #ea580c;
+		background: #fff7ed;
+	}
+
+	.dark .btn-back {
+		border-color: #374151;
+		background: #111827;
+		color: #d1d5db;
+	}
+
+	.dark .btn-back:hover {
+		border-color: #fb923c;
+		color: #fdba74;
+		background: #1f2937;
+	}
+
 	.dark .btn-oauth:hover {
 		background: #292524;
 	}
@@ -698,6 +731,14 @@
 		<!-- ========== RIGHT PANEL ========== -->
 		<div class="flex-1 right-panel flex items-center justify-center p-2 sm:p-6 lg:p-10">
 			<div class="auth-card-inner animate-fade-up">
+				<div class="mb-5">
+					<button class="btn-back" type="button" on:click={() => goto('/welcome')}>
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+						</svg>
+						Back to Welcome
+					</button>
+				</div>
 
 				{#if ($config?.features.auth_trusted_header ?? false) || $config?.features.auth === false}
 					<div class="flex items-center justify-center gap-3 text-xl sm:text-2xl text-center font-semibold text-gray-900 dark:text-gray-100">

@@ -15,6 +15,8 @@
 
 	import FolderOpen from '$lib/components/icons/FolderOpen.svelte';
 	import EllipsisHorizontal from '$lib/components/icons/EllipsisHorizontal.svelte';
+	import Plus from '$lib/components/icons/Plus.svelte';
+	import Tooltip from '$lib/components/common/Tooltip.svelte';
 	import {
 		deleteFolderById,
 		updateFolderIsExpandedById,
@@ -442,6 +444,18 @@
 						e.stopPropagation();
 					}}
 				>
+					<Tooltip content={$i18n.t('New Chat')}>
+						<button
+							class="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md transition-colors duration-150 touch-auto"
+							on:click={(e) => {
+								e.stopPropagation();
+								dispatch('createChat', { folderId });
+							}}
+						>
+							<Plus className="size-4 text-gray-600 dark:text-gray-400" strokeWidth="2.5" />
+						</button>
+					</Tooltip>
+
 					<FolderMenu
 						on:rename={() => {
 							setTimeout(() => {
@@ -494,6 +508,9 @@
 								}}
 								on:select={(e) => {
 									dispatch('select', e.detail);
+								}}
+								on:createChat={(e) => {
+									dispatch('createChat', e.detail);
 								}}
 							/>
 						{/each}

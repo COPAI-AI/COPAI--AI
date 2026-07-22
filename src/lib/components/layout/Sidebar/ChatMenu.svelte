@@ -30,8 +30,12 @@
 	import { createMessagesList } from '$lib/utils';
 	import { downloadChatAsPDF } from '$lib/apis/utils';
 	import Download from '$lib/components/icons/Download.svelte';
+	import ChevronDown from '$lib/components/icons/ChevronDown.svelte';
+	import { slide } from 'svelte/transition';
 
 	const i18n = getContext('i18n');
+
+	let showDownloadOptions = false;
 
 	export let shareHandler: Function;
 	export let cloneChatHandler: Function;
@@ -173,6 +177,7 @@
 	on:change={(e) => {
 		if (e.detail === false) {
 			onClose();
+			showDownloadOptions = false;
 		}
 	}}
 >
@@ -243,19 +248,28 @@
 				<div class="flex items-center">{$i18n.t('Share')}</div>
 			</DropdownMenu.Item>
 
-			<DropdownMenu.Sub>
-				<DropdownMenu.SubTrigger
-					class="flex gap-2 items-center px-3 py-2 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
-				>
+			<button
+				type="button"
+				class="w-full flex gap-2 items-center justify-between px-3 py-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
+				on:click={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					showDownloadOptions = !showDownloadOptions;
+				}}
+			>
+				<div class="flex gap-2 items-center">
 					<Download strokeWidth="2" />
 
 					<div class="flex items-center">{$i18n.t('Download')}</div>
-				</DropdownMenu.SubTrigger>
-				<DropdownMenu.SubContent
-					class="w-full rounded-xl px-1 py-1.5 z-50 bg-white dark:bg-gray-850 dark:text-white shadow-lg"
-					transition={flyAndScale}
-					sideOffset={8}
-				>
+				</div>
+
+				<ChevronDown
+					className="size-3 transition-transform {showDownloadOptions ? 'rotate-180' : ''}"
+				/>
+			</button>
+
+			{#if showDownloadOptions}
+				<div class="flex flex-col pl-4" transition:slide={{ duration: 150 }}>
 					<DropdownMenu.Item
 						class="flex gap-2 items-center px-3 py-2 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
 						on:click={() => {
@@ -281,8 +295,8 @@
 					>
 						<div class="flex items-center line-clamp-1">{$i18n.t('PDF document (.pdf)')}</div>
 					</DropdownMenu.Item>
-				</DropdownMenu.SubContent>
-			</DropdownMenu.Sub>
+				</div>
+			{/if}
 			<DropdownMenu.Item
 				class="flex  gap-2  items-center px-3 py-1.5 text-sm  cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md"
 				on:click={() => {

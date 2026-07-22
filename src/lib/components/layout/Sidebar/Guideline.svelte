@@ -18,25 +18,27 @@
 	class="h-full max-h-[100dvh] w-full overflow-y-auto overscroll-contain touch-pan-y px-3 pb-6 pt-4 sm:px-6 sm:pt-6"
 	style="-webkit-overflow-scrolling: touch;"
 >
-	<div class="sticky top-0 z-20 mb-4 bg-white pb-2 dark:bg-gray-950 sm:mb-6 sm:bg-transparent sm:pb-0">
-		<div
-			class="flex items-center justify-between rounded-xl border border-gray-200/70 bg-white p-2 dark:border-gray-800/70 dark:bg-gray-950 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0"
-		>
+	<div class="sticky top-0 z-20 mb-5 bg-white pb-2 dark:bg-gray-950 sm:mb-8 sm:bg-transparent sm:pb-0">
+		<div class="flex items-center justify-between">
 			<button
 				type="button"
 				on:click={goBack}
-				class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-white"
+				class="group inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white py-1.5 pl-1.5 pr-4 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:border-orange-300 hover:text-orange-600 hover:shadow dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200 dark:hover:border-orange-800 dark:hover:text-orange-400"
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-4">
-					<path
-						fill-rule="evenodd"
-						d="M17 10a.75.75 0 0 1-.75.75H5.56l3.22 3.22a.75.75 0 1 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 1 1 1.06 1.06l-3.22 3.22h10.69A.75.75 0 0 1 17 10Z"
-						clip-rule="evenodd"
-					/>
-				</svg>
+				<span
+					class="inline-flex size-6 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-colors group-hover:bg-orange-100 group-hover:text-orange-600 dark:bg-gray-800 dark:text-gray-300 dark:group-hover:bg-orange-950/50 dark:group-hover:text-orange-400"
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-3.5">
+						<path
+							fill-rule="evenodd"
+							d="M17 10a.75.75 0 0 1-.75.75H5.56l3.22 3.22a.75.75 0 1 1-1.06 1.06l-4.5-4.5a.75.75 0 0 1 0-1.06l4.5-4.5a.75.75 0 1 1 1.06 1.06l-3.22 3.22h10.69A.75.75 0 0 1 17 10Z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+				</span>
 				{$i18n.t('Back')}
 			</button>
-			<div class="pr-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:hidden">
+			<div class="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 sm:hidden">
 				{$i18n.t('Guideline')}
 			</div>
 		</div>

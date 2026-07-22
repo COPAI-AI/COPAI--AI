@@ -118,6 +118,26 @@
 				<div class="self-center truncate font-medium">{$i18n.t('Guideline')}</div>
 			</button>
 
+			<!-- Feedback -->
+			<button
+				class="flex items-center rounded-lg py-2.5 px-3.5 w-full
+					hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 group"
+					on:click={() => {
+						if (typeof window !== 'undefined') {
+							window.dispatchEvent(new CustomEvent('open-feedback'));
+						}
+						show = false;
+						if ($mobile) showSidebar.set(false);
+					}}
+			>
+				<div class="self-center mr-3 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-5 h-5" stroke-width="1.5">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12v6a2 2 0 01-2 2H7l-4 4V6a2 2 0 012-2h14a2 2 0 012 2z" />
+					</svg>
+				</div>
+				<div class="self-center truncate font-medium">{$i18n.t('Feedback')}</div>
+			</button>
+
 			<!-- Admin section (UNCHANGED) -->
 			{#if role === 'admin'}
 				<div class="my-2 px-2">

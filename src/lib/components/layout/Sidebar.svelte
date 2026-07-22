@@ -146,6 +146,88 @@
 		selectedChatId = null;
 		chatId.set('');
 		await goto(`/?folder_id=${encodeURIComponent(folderId)}`);
+	};
+
+	const handleCreateNewChat = async () => {
+		let models: string[] = [];
+		try {
+			models = JSON.parse(localStorage.lastSelectedModels ?? '[]');
+		} catch (e) {
+			models = [];
+		}
+		if (!models || models.length === 0) {
+			models = ($config?.default_models ?? '').split(',').filter((m) => m);
+		}
+		if (!models || models.length === 0) {
+			models = [''];
+		}
+
+		const newChat = await createNewChat(localStorage.token, {
+			title: $i18n.t('New Chat'),
+			models,
+			history: { messages: {}, currentId: null },
+			messages: [],
+			tags: [],
+			timestamp: Date.now()
+		}).catch((error) => {
+			toast.error(`${error}`);
+			return null;
+		});
+
+		if (!newChat) {
+			return;
+		}
+
+		await initChatList();
+
+		selectedChatId = newChat.id;
+		chatId.set(newChat.id);
+		await goto(`/c/${newChat.id}`);
+
+		if ($mobile) {
+			showSidebar.set(false);
+		}
+	};
+
+	const handleNewChatInFolder = async (folderId: string) => {
+		let models: string[] = [];
+		try {
+			models = JSON.parse(localStorage.lastSelectedModels ?? '[]');
+		} catch (e) {
+			models = [];
+		}
+		if (!models || models.length === 0) {
+			models = ($config?.default_models ?? '').split(',').filter((m) => m);
+		}
+		if (!models || models.length === 0) {
+			models = [''];
+		}
+
+		const newChat = await createNewChat(localStorage.token, {
+			title: $i18n.t('New Chat'),
+			models,
+			history: { messages: {}, currentId: null },
+			messages: [],
+			tags: [],
+			timestamp: Date.now()
+		}).catch((error) => {
+			toast.error(`${error}`);
+			return null;
+		});
+
+		if (!newChat) {
+			return;
+		}
+
+		await updateChatFolderIdById(localStorage.token, newChat.id, folderId).catch((error) => {
+			toast.error(`${error}`);
+		});
+
+		await initChatList();
+
+		selectedChatId = newChat.id;
+		chatId.set(newChat.id);
+		await goto(`/c/${newChat.id}`);
 
 		if ($mobile) {
 			showSidebar.set(false);
@@ -692,8 +774,8 @@
 	bind:this={navElement}
 	id="sidebar"
 	class="sidebar-container h-screen max-h-[100dvh] min-h-screen select-none {$showSidebar
-		? 'md:relative md:w-[280px] md:max-w-[280px] shadow-[0_8px_30px_rgb(0,0,0,0.12)] md:shadow-none'
-		: 'md:relative md:w-[64px] md:max-w-[64px] md:shadow-none'} {$mobile && !$showSidebar ? '-translate-x-[280px] w-[0px]' : ''} {$isApp
+		? 'md:relative md:w-[280px] md:max-w-[280px]'
+		: 'md:relative md:w-[64px] md:max-w-[64px]'} {$mobile && !$showSidebar ? '-translate-x-[280px] w-[0px]' : ''} {$isApp
 		? 'ml-[4.5rem] md:ml-0'
 		: ''} transition-[width,transform] duration-300 ease-out shrink-0 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm fixed z-50 top-0 left-0 overflow-x-hidden border-r border-gray-200/80 dark:border-gray-800/80"
 	data-state={$showSidebar}
@@ -712,7 +794,7 @@
 			<div class="flex w-full flex-col items-start gap-2 px-2.5">
 				<Tooltip content={$i18n.t('Toggle sidebar')}>
 					<button
-						class="sidebar-toggle p-2.5 flex rounded-xl hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-200 group border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50 hover:shadow-sm"
+						class="sidebar-toggle p-2.5 flex rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150 group"
 						on:click={toggleSidebar}
 						aria-label="Toggle sidebar"
 					>
@@ -735,16 +817,14 @@
 
 				<Tooltip content={$i18n.t('New Chat')}>
 					<a
-						class="p-2.5 flex rounded-xl hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-200 group border border-transparent hover:border-gray-200/60 dark:hover:border-gray-700/60 hover:shadow-sm"
+						class="p-2.5 flex rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150 group"
 						href="/"
 						draggable="false"
 						on:click={async () => {
 							await handleNewChatClick();
 						}}
 					>
-						<div class="flex-shrink-0 p-1.5 bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg group-hover:from-orange-100 group-hover:to-orange-200/50 dark:group-hover:from-orange-900/30 dark:group-hover:to-orange-800/30 transition-all duration-200">
-							<PencilSquare className="size-4 text-orange-600 dark:text-orange-400" strokeWidth="2.5" />
-						</div>
+						<PencilSquare className="size-4 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors" strokeWidth="2" />
 					</a>
 				</Tooltip>
 
@@ -752,32 +832,30 @@
 					<Tooltip content={$i18n.t('Workspace')}>
 						<a
 							href="/workspace"
-							class="p-2.5 flex rounded-xl hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-200 group border border-transparent hover:border-gray-200/60 dark:hover:border-gray-700/60 hover:shadow-sm"
+							class="p-2.5 flex rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150 group"
 							aria-label="Workspace"
 						>
-							<div class="flex-shrink-0 p-1.5 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-900/40 dark:to-gray-950/40 rounded-lg group-hover:from-gray-200 group-hover:to-gray-100 dark:group-hover:from-gray-800/50 dark:group-hover:to-gray-900/50 transition-all duration-200 border border-gray-200/30 dark:border-gray-800/30">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke-width="2.5"
-									stroke="currentColor"
-									class="size-4 text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-200"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
-									/>
-								</svg>
-							</div>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="2"
+								stroke="currentColor"
+								class="size-4 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-150"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+								/>
+							</svg>
 						</a>
 					</Tooltip>
 				{/if}
 
 				<Tooltip content={$i18n.t('Search')}>
 					<button
-						class="p-2.5 flex rounded-xl hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-200 group border border-transparent hover:border-gray-200/60 dark:hover:border-gray-700/60 hover:shadow-sm"
+						class="p-2.5 flex rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150 group"
 						on:click={(e) => {
 							e.preventDefault();
 							e.stopPropagation();
@@ -786,20 +864,18 @@
 						aria-label="Search"
 						type="button"
 					>
-						<div class="flex-shrink-0 p-1.5 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-900/40 dark:to-gray-950/40 rounded-lg group-hover:from-gray-200 group-hover:to-gray-100 dark:group-hover:from-gray-800/50 dark:group-hover:to-gray-900/50 transition-all duration-200 border border-gray-200/30 dark:border-gray-800/30">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 20 20"
-								fill="currentColor"
-								class="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-200"
-							>
-								<path
-									fill-rule="evenodd"
-									d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
-									clip-rule="evenodd"
-								/>
-							</svg>
-						</div>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							viewBox="0 0 20 20"
+							fill="currentColor"
+							class="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-150"
+						>
+							<path
+								fill-rule="evenodd"
+								d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+								clip-rule="evenodd"
+							/>
+						</svg>
 					</button>
 				</Tooltip>
 			</div>
@@ -810,9 +886,9 @@
 			</div>
 		{:else}
 			
-			<div class="px-2.5 flex items-center gap-2">
+			<div class="px-2.5 flex items-center gap-1.5">
 			<button
-				class="sidebar-toggle -mt-[5px] p-2.5 flex rounded-xl hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-200 group border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50 hover:shadow-sm"
+				class="sidebar-toggle p-2 flex rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150"
 				on:click={toggleSidebar}
 				aria-label="Toggle sidebar"
 			>
@@ -820,9 +896,9 @@
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
 					viewBox="0 0 24 24"
-					stroke-width="2.5"
+					stroke-width="2"
 					stroke="currentColor"
-					class="size-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-200"
+					class="size-5 text-gray-600 dark:text-gray-400"
 				>
 					<path
 						stroke-linecap="round"
@@ -834,13 +910,10 @@
 
 			<a
 				id="sidebar-new-chat-button"
-				class="new-chat-button flex-1 flex items-center justify-between gap-2.5 rounded-xl px-3 py-2.5
-       bg-white dark:bg-gray-800
-       border border-gray-200 dark:border-gray-700
-       hover:border-gray-300 dark:hover:border-gray-600
-       hover:shadow-md dark:hover:shadow-gray-900/30
-       transition-all duration-200 active:scale-[0.98]
-       no-drag-region group"
+				class="new-chat-button flex-1 flex items-center justify-between gap-2 rounded-lg px-2.5 py-2
+       hover:bg-gray-100 dark:hover:bg-gray-800
+       transition-colors duration-150
+       no-drag-region"
 
 				href="/"
 				draggable="false"
@@ -848,40 +921,28 @@
 					await handleNewChatClick();
 				}}
 			>
-				<div class="flex items-center gap-2.5 min-w-0">
-					<div class="flex-shrink-0 p-1.5 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900/90 dark:to-gray-950/90 rounded-lg shadow-sm border border-gray-200/50 dark:border-gray-800/50">
-						<img
-							crossorigin="anonymous"
-							src="{WEBUI_BASE_URL}/static/favicon.png"
-							class="size-4 rounded"
-							alt="logo"
-						/>
-					</div>
-					<span class="font-semibold text-sm truncate text-gray-900 dark:text-gray-100"
+				<div class="flex items-center gap-2 min-w-0">
+					<img
+						src="/static/favicon.png"
+						class="size-4 rounded shrink-0"
+						alt="logo"
+					/>
+					<span class="font-medium text-sm truncate text-gray-900 dark:text-gray-100"
 						>{$i18n.t('New Chat')}</span
 					>
 				</div>
 
-				<div class="flex-shrink-0 p-1 bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg group-hover:from-orange-100 group-hover:to-orange-200/50 dark:group-hover:from-orange-900/30 dark:group-hover:to-orange-800/30 transition-all duration-200">
-					<PencilSquare
-						className="size-4 text-orange-600 dark:text-orange-400"
-						strokeWidth="2.5"
-					/>
-				</div>
+				<PencilSquare className="size-4 text-gray-500 dark:text-gray-400" strokeWidth="2" />
 			</a>
 		</div>
 
-		<!-- Enhanced Workspace Link -->
+		<!-- Workspace Link -->
 		{#if hasWorkspaceAccess}
-			<div class="px-2.5 mt-2.5">
+			<div class="px-2.5 mt-1">
 				<a
-					class="workspace-link flex items-center gap-2.5 rounded-xl px-3 py-2.5 
-					hover:bg-gradient-to-r hover:from-white/90 hover:to-gray-50/90 
-					dark:hover:from-gray-800/90 dark:hover:to-gray-900/80 
-					transition-all duration-200 active:scale-[0.98] group 
-					border border-transparent 
-					hover:border-gray-200/60 dark:hover:border-gray-700/60
-					hover:shadow-sm"
+					class="workspace-link flex items-center gap-2 rounded-lg px-2.5 py-2
+					hover:bg-gray-100 dark:hover:bg-gray-800
+					transition-colors duration-150"
 					href="/workspace"
 					on:click={() => {
 						selectedChatId = null;
@@ -893,58 +954,54 @@
 					}}
 					draggable="false"
 				>
-					<div class="flex-shrink-0 p-1.5 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-900/40 dark:to-gray-950/40 rounded-lg group-hover:from-gray-200 group-hover:to-gray-100 dark:group-hover:from-gray-800/50 dark:group-hover:to-gray-900/50 transition-all duration-200 border border-gray-200/30 dark:border-gray-800/30">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke-width="2.5"
-							stroke="currentColor"
-							class="size-4 text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors duration-200"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
-							/>
-						</svg>
-					</div>
-					<span class="font-semibold text-sm text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">{$i18n.t('Workspace')}</span>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke-width="2"
+						stroke="currentColor"
+						class="size-4 text-gray-600 dark:text-gray-400 shrink-0"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z"
+						/>
+					</svg>
+					<span class="font-medium text-sm text-gray-700 dark:text-gray-200">{$i18n.t('Workspace')}</span>
 				</a>
 			</div>
 		{/if}
 
-		<!-- Enhanced Search Input with subtle border -->
-		<div class="px-2.5 mt-3 relative {$temporaryChatEnabled ? 'opacity-30 pointer-events-none' : ''}">
+		<!-- Search Input -->
+		<div class="px-2.5 mt-1 relative {$temporaryChatEnabled ? 'opacity-30 pointer-events-none' : ''}">
 			{#if $temporaryChatEnabled}
 				<div class="absolute z-40 w-full h-full flex justify-center"></div>
 			{/if}
 
-			<div class="search-wrapper">
-				<button
-					type="button"
-					class="flex w-full items-center gap-2.5 rounded-xl border border-gray-200/60 dark:border-gray-700/60 bg-white dark:bg-gray-800 px-3 py-2.5 text-left hover:border-gray-300/80 dark:hover:border-gray-600/80 hover:shadow-sm transition-all duration-200"
-					on:click={(e) => {
-						e.preventDefault();
-						handleSearchClick();
-					}}
-					aria-label="Open search"
+			<button
+				type="button"
+				class="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150"
+				on:click={(e) => {
+					e.preventDefault();
+					handleSearchClick();
+				}}
+				aria-label="Open search"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 20 20"
+					fill="currentColor"
+					class="w-4 h-4 text-gray-500 dark:text-gray-400 shrink-0"
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-						class="w-4 h-4 text-gray-400 dark:text-gray-500"
-					>
-						<path
-							fill-rule="evenodd"
-							d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
-							clip-rule="evenodd"
-						/>
-					</svg>
-					<span class="text-sm text-gray-400 dark:text-gray-500">{$i18n.t('Search chats...')}</span>
-				</button>
-			</div>
+					<path
+						fill-rule="evenodd"
+						d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+						clip-rule="evenodd"
+					/>
+				</svg>
+				<span class="text-sm text-gray-500 dark:text-gray-400">{$i18n.t('Search chats...')}</span>
+			</button>
 		</div>
 
 		<!-- Enhanced Chat List with better spacing -->
@@ -1037,6 +1094,9 @@
 							on:select={(e) => {
 								handleFolderSelect(e.detail.folderId);
 							}}
+							on:createChat={(e) => {
+								handleNewChatInFolder(e.detail.folderId);
+							}}
 						/>
 					{/if}
 				</Folder>
@@ -1048,6 +1108,10 @@
 				className="px-2.5 mt-0.5"
 				name={$i18n.t('Chats')}
 				dragAndDrop={true}
+				onAdd={() => {
+					handleCreateNewChat();
+				}}
+				onAddLabel={$i18n.t('New Chat')}
 				on:import={(e) => {
 					importChatHandler(e.detail);
 				}}
@@ -1230,8 +1294,8 @@
 			</Folder>
 		</div>
 
-		<!-- Enhanced User Menu with gradient border -->
-		<div class="user-menu-container px-2.5 mt-2.5 border-t border-gray-200/60 dark:border-gray-800/60 pt-2.5">
+		<!-- User Menu -->
+		<div class="user-menu-container px-2.5 mt-1 border-t border-gray-100 dark:border-gray-800 pt-2">
 			<div class="flex flex-col font-primary">
 				{#if $user !== undefined && $user !== null}
 					<UserMenu
@@ -1243,24 +1307,20 @@
 						}}
 					>
 						<button
-							class="user-profile-button flex items-center gap-2.5 rounded-xl py-2.5 px-3 w-full
-							hover:bg-gradient-to-r hover:from-white/90 hover:to-gray-50/90 
-							dark:hover:from-gray-800/90 dark:hover:to-gray-900/80 
-							transition-all duration-200 active:scale-[0.98] group 
-							border border-transparent 
-							hover:border-gray-200/60 dark:hover:border-gray-700/60
-							hover:shadow-sm"
+							class="user-profile-button flex items-center gap-2.5 rounded-lg py-2 px-2.5 w-full
+							hover:bg-gray-100 dark:hover:bg-gray-800
+							transition-colors duration-150 group"
 						>
 							<div class="relative flex-shrink-0">
 								<img
 									src={$user?.profile_image_url}
-									class="w-9 h-9 object-cover rounded-full ring-2 ring-gray-200/60 dark:ring-gray-700/60 group-hover:ring-gray-300/80 dark:group-hover:ring-gray-600/80 transition-all duration-200"
+									class="w-7 h-7 object-cover rounded-full"
 									alt="User profile"
 								/>
-								<div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 shadow-sm"></div>
+								<div class="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
 							</div>
 
-							<div class="font-semibold text-sm truncate flex-1 text-left text-gray-700 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
+							<div class="font-medium text-sm truncate flex-1 text-left text-gray-700 dark:text-gray-200">
 								{$user?.name}
 							</div>
 
@@ -1268,9 +1328,9 @@
 								xmlns="http://www.w3.org/2000/svg"
 								fill="none"
 								viewBox="0 0 24 24"
-								stroke-width="2.5"
+								stroke-width="2"
 								stroke="currentColor"
-								class="ml-auto size-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-all group-hover:translate-x-0.5"
+								class="ml-auto size-4 text-gray-400"
 							>
 								<path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6" />
 							</svg>
@@ -1406,41 +1466,6 @@
 		font-variant: small-caps;
 	}
 
-	/* Enhanced glassmorphism effect */
-	.sidebar-container {
-		backdrop-filter: blur(24px) saturate(180%);
-		-webkit-backdrop-filter: blur(24px) saturate(180%);
-	}
-
-	/* Search wrapper subtle divider */
-	.search-wrapper {
-		position: relative;
-	}
-
-	.search-wrapper::after {
-		content: '';
-		position: absolute;
-		bottom: -10px;
-		left: 8px;
-		right: 8px;
-		height: 1px;
-		background: linear-gradient(90deg, 
-			transparent 0%, 
-			rgba(229, 231, 235, 0.6) 15%, 
-			rgba(229, 231, 235, 0.6) 85%, 
-			transparent 100%);
-		opacity: 0.5;
-	}
-
-	:global(.dark) .search-wrapper::after {
-		background: linear-gradient(90deg, 
-			transparent 0%, 
-			rgba(55, 65, 81, 0.6) 15%, 
-			rgba(55, 65, 81, 0.6) 85%, 
-			transparent 100%);
-		opacity: 0.4;
-	}
-
 	/* CLEAN PROJECTS SECTION - NO SPECIAL STYLING */
 	:global(.projects-section) {
 		position: relative;
@@ -1538,17 +1563,4 @@
 		box-shadow: none !important;
 	}
 
-	/* Micro-interactions */
-	@keyframes subtle-bounce {
-		0%, 100% {
-			transform: translateY(0);
-		}
-		50% {
-			transform: translateY(-2px);
-		}
-	}
-
-	.new-chat-button:hover .flex-shrink-0:last-child {
-		animation: subtle-bounce 0.6s ease-in-out;
-	}
 </style>
