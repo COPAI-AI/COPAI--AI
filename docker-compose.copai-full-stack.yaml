@@ -43,7 +43,7 @@ services:
       --enable-prefix-caching
       --limit-mm-per-prompt '{"image": 2, "audio": 0}'
       --trust-remote-code
-  healthcheck:
+    healthcheck:
       test: ["CMD", "curl", "-f", "http://127.0.0.1:8001/health"]
       interval: 30s
       timeout: 10s
