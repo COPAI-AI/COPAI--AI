@@ -94,12 +94,17 @@ export const getSessionUser = async (token: string) => {
 		credentials: 'include'
 	})
 		.then(async (res) => {
-			if (!res.ok) throw await res.json();
+			if (!res.ok) {
+				const errorData = await res.json().catch(() => ({}));
+				// Preserve the HTTP status so callers can tell a real auth
+				// rejection (401/403) apart from a network/CORS failure below.
+				throw { status: res.status, detail: errorData?.detail };
+			}
 			return res.json();
 		})
 		.catch((err) => {
 			console.log(err);
-			error = err.detail;
+			error = err;
 			return null;
 		});
 

@@ -7,7 +7,7 @@
 		stiffness: 0.05
 	});
 
-	import { onMount, tick, setContext } from 'svelte';
+	import { onMount, tick, setContext, onDestroy } from 'svelte';
 	import {
 		config,
 		user,
@@ -46,6 +46,7 @@
 	import { getAllTags, getChatList } from '$lib/apis/chats';
 	import NotificationToast from '$lib/components/NotificationToast.svelte';
 	import AppSidebar from '$lib/components/app/AppSidebar.svelte';
+	import FeedbackPanel from '$lib/components/feedback/FeedbackPanel.svelte';
 	import { chatCompletion } from '$lib/apis/openai';
 
 	setContext('i18n', i18n);
@@ -54,9 +55,23 @@
 
 	let loaded = false;
 
+	let showFeedbackPanel = false;
+
+	const _openFeedbackHandler = () => {
+		showFeedbackPanel = true;
+	};
+
+	onMount(() => {
+		window.addEventListener('open-feedback', _openFeedbackHandler);
+	});
+
+	onDestroy(() => {
+		window.removeEventListener('open-feedback', _openFeedbackHandler);
+	});
+
 	const BREAKPOINT = 768;
 
-	const setupSocket = async (enableWebsocket) => {
+		const setupSocket = async (enableWebsocket) => {
 		const _socket = io(`${WEBUI_BASE_URL}` || undefined, {
 			reconnection: true,
 			reconnectionDelay: 1000,
@@ -538,10 +553,22 @@
 
 				if (localStorage.token) {
 					// Get Session User Info
-					const sessionUser = await getSessionUser(localStorage.token).catch((error) => {
-						toast.error(`${error}`);
-						return null;
-					});
+					let sessionUser = null;
+					let sessionInvalid = false;
+
+					try {
+						sessionUser = await getSessionUser(localStorage.token);
+					} catch (error) {
+						// Only treat the session as signed-out when the server actually
+						// rejected the token (401/403). A network/CORS failure to reach
+						// the backend shouldn't log an otherwise-valid user out.
+						if (error?.status === 401 || error?.status === 403) {
+							sessionInvalid = true;
+						} else {
+							console.error('Failed to verify session:', error);
+							toast.error(`${error?.detail ?? error}`);
+						}
+					}
 
 					if (sessionUser) {
 						// Save Session User to Store
@@ -549,7 +576,7 @@
 
 						await user.set(sessionUser);
 						await config.set(await getBackendConfig());
-					} else {
+					} else if (sessionInvalid) {
 						// Redirect Invalid Session User to welcome page
 						localStorage.removeItem('token');
 						await goto('/welcome');
@@ -639,4 +666,7 @@
 			: 'light'}
 	richColors
 	position="top-right"
+	offset="72px"
 />
+
+<FeedbackPanel bind:open={showFeedbackPanel} />

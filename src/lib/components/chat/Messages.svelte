@@ -415,7 +415,7 @@
 		</div>
 	{:else}
 		<div class="w-full pt-2 flex justify-center" in:fade={{ duration: 300 }}>
-			<div class="{($settings?.widescreenMode ?? null) ? 'max-w-full' : 'max-w-4xl'} w-full px-6">
+			<div class="{($settings?.widescreenMode ?? null) ? 'max-w-full' : 'max-w-4xl'} w-full px-2 sm:px-6">
 				{#key chatId}
 					<div class="w-full">
 						{#if messages.at(0)?.parentId !== null}

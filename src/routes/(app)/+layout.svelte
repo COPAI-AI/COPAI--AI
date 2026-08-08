@@ -57,7 +57,7 @@
 
 	onMount(async () => {
 		if ($user === undefined || $user === null) {
-			await goto('/landing');
+			await goto('/welcome');
 		} else if (['user', 'admin'].includes($user?.role)) {
 			try {
 				// Check if IndexedDB exists
@@ -257,8 +257,7 @@
 	> -->
 	<!-- scrolling removed to prevent issues with mobile browsers and vh units, height is now handled in chat container with js setting --vh variable to actual viewport height -->
 	<div
-		<div
-		class="text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-900 h-screen min-h-[115dvh] overflow-hidden flex flex-row justify-end"
+		class="text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-900 h-screen max-h-[100dvh] overflow-hidden flex flex-row justify-end"
 	>
 		{#if !['user', 'admin'].includes($user?.role)}
 			<AccountPending />

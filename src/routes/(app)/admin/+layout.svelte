@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, getContext } from 'svelte';
+	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
 
 	import { WEBUI_NAME, showSidebar, user } from '$lib/stores';
@@ -10,12 +10,17 @@
 
 	let loaded = false;
 
-	onMount(async () => {
+	// Wait until the session user has actually been restored (it starts as `undefined`
+	// while the root layout is fetching it) before deciding whether to redirect —
+	// otherwise a refresh on an admin route could bounce an admin out before their
+	// session finishes loading.
+	$: if ($user !== undefined) {
 		if ($user?.role !== 'admin') {
-			await goto('/');
+			goto('/');
+		} else {
+			loaded = true;
 		}
-		loaded = true;
-	});
+	}
 </script>
 
 <svelte:head>

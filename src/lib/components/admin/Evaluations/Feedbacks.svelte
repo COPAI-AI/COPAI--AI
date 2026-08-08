@@ -161,7 +161,7 @@
 						</th>
 
 						<th scope="col" class="px-3 sm:px-6 py-2.5 sm:py-3.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
-							{$i18n.t('Models')}
+							{$i18n.t('Feedback')}
 						</th>
 
 						<th scope="col" class="px-3 sm:px-6 py-2.5 sm:py-3.5 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">
@@ -195,39 +195,47 @@
 							</td>
 
 							<td class="px-3 sm:px-6 py-2.5 sm:py-4">
-								<div class="flex flex-col gap-1 min-w-0">
-									{#if feedback.data?.sibling_model_ids}
+								<div class="flex flex-col gap-1 min-w-0 max-w-xs">
+									{#if feedback.data?.model_id}
 										<div class="font-medium text-gray-900 dark:text-gray-100 truncate text-xs sm:text-sm">
-											{feedback.data?.model_id}
+											{feedback.data.model_id}
 										</div>
 
-										<Tooltip content={feedback.data.sibling_model_ids.join(', ')}>
-											<div class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
-												{#if feedback.data.sibling_model_ids.length > 2}
-													{feedback.data.sibling_model_ids.slice(0, 2).join(', ')}, 
-													<span class="font-medium">
-														{$i18n.t('and {{COUNT}} more', { COUNT: feedback.data.sibling_model_ids.length - 2 })}
-													</span>
-												{:else}
-													{feedback.data.sibling_model_ids.join(', ')}
-												{/if}
+										{#if feedback.data?.sibling_model_ids}
+											<Tooltip content={feedback.data.sibling_model_ids.join(', ')}>
+												<div class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+													{#if feedback.data.sibling_model_ids.length > 2}
+														{feedback.data.sibling_model_ids.slice(0, 2).join(', ')},
+														<span class="font-medium">
+															{$i18n.t('and {{COUNT}} more', { COUNT: feedback.data.sibling_model_ids.length - 2 })}
+														</span>
+													{:else}
+														{feedback.data.sibling_model_ids.join(', ')}
+													{/if}
+												</div>
+											</Tooltip>
+										{/if}
+									{:else if feedback.data?.comment || feedback.data?.reason}
+										<Tooltip content={feedback.data?.comment || feedback.data?.reason}>
+											<div class="text-xs sm:text-sm text-gray-900 dark:text-gray-100 line-clamp-2 whitespace-normal">
+												{feedback.data?.comment || feedback.data?.reason}
 											</div>
 										</Tooltip>
 									{:else}
-										<div class="font-medium text-gray-900 dark:text-gray-100 truncate text-xs sm:text-sm">
-											{feedback.data?.model_id}
-										</div>
+										<span class="text-xs text-gray-400 dark:text-gray-500">—</span>
 									{/if}
 								</div>
 							</td>
 
 							<td class="px-3 sm:px-6 py-2.5 sm:py-4 whitespace-nowrap text-center">
-								{#if feedback.data.rating.toString() === '1'}
+								{#if feedback.data?.rating?.toString() === '1'}
 									<Badge type="info" content={$i18n.t('Won')} />
-								{:else if feedback.data.rating.toString() === '0'}
+								{:else if feedback.data?.rating?.toString() === '0'}
 									<Badge type="muted" content={$i18n.t('Draw')} />
-								{:else if feedback.data.rating.toString() === '-1'}
+								{:else if feedback.data?.rating?.toString() === '-1'}
 									<Badge type="error" content={$i18n.t('Lost')} />
+								{:else}
+									<span class="text-xs text-gray-400 dark:text-gray-500">—</span>
 								{/if}
 							</td>
 

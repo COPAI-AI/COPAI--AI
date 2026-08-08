@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import { onMount } from 'svelte';
-	import { user } from '$lib/stores';
-	import FeedbackForm from '$lib/components/feedback/FeedbackForm.svelte';
 
-	const initialSection: 'home' | 'about' | 'community' | 'feedback' = 'home';
+	const initialSection: 'home' | 'about' | 'community' = 'home';
 	const NAVBAR_OFFSET = 80;
 
 	let scrollY = 0;
-	let activeSection: 'home' | 'about' | 'community' | 'feedback' = initialSection;
+	let activeSection: 'home' | 'about' | 'community' = initialSection;
 	let scrollContainer: HTMLDivElement;
 
 	const features = [
@@ -23,7 +21,7 @@
 		img.src = '/user.png';
 	};
 
-	const scrollIntoSection = (sectionId: 'home' | 'about' | 'community' | 'feedback', behavior: ScrollBehavior) => {
+	const scrollIntoSection = (sectionId: 'home' | 'about' | 'community', behavior: ScrollBehavior) => {
 		const element = document.getElementById(sectionId);
 		if (!element || !scrollContainer) {
 			return;
@@ -39,47 +37,24 @@
 		});
 	};
 
-	const sectionFromPath = (path: string): 'home' | 'about' | 'community' | 'feedback' => {
+	const sectionFromPath = (path: string): 'home' | 'about' | 'community' => {
 		if (path === '/about') return 'about';
 		if (path === '/community') return 'community';
-		if (path === '/feedback') return 'feedback';
 		return 'home';
 	};
 
-	const pathForSection = (sectionId: 'home' | 'about' | 'community' | 'feedback') =>
-		sectionId === 'home' ? '/' : `/${sectionId}`;
-
-	const scrollToSection = (sectionId: 'home' | 'about' | 'community' | 'feedback') => {
+	const scrollToSection = (sectionId: 'home' | 'about' | 'community') => {
 		activeSection = sectionId;
 
-		if (sectionId !== 'feedback') {
-			const targetPath = pathForSection(sectionId);
-			const currentPath = window.location.pathname;
+		const targetPath = `/${sectionId}`;
+		const currentPath = window.location.pathname;
 
-			if (currentPath !== targetPath) {
-				window.history.pushState({}, '', targetPath);
-			}
+		if (currentPath !== targetPath) {
+			window.history.pushState({}, '', targetPath);
 		}
 
 		scrollIntoSection(sectionId, 'smooth');
 	};
-
-	// Order matters: used to pick the topmost section currently crossing the scrollspy line.
-	const sectionOrder: Array<'home' | 'about' | 'community' | 'feedback'> = [
-		'home',
-		'about',
-		'community',
-		'feedback'
-	];
-	const sectionVisibility: Record<string, boolean> = {
-		home: false,
-		about: false,
-		community: false,
-		feedback: false
-	};
-
-	let sectionObserver: IntersectionObserver;
-	let suppressObserverUntil = 0;
 
 	onMount(() => {
 		activeSection = initialSection;
@@ -87,7 +62,6 @@
 		const handlePopState = () => {
 			const target = sectionFromPath(window.location.pathname);
 			activeSection = target;
-			suppressObserverUntil = Date.now() + 700;
 			scrollIntoSection(target, 'smooth');
 		};
 
@@ -97,47 +71,8 @@
 			scrollIntoSection(initialSection, 'auto');
 		});
 
-		// Scrollspy: keep the URL in sync with whichever section is currently in view,
-		// not just the section the user last clicked.
-		sectionObserver = new IntersectionObserver(
-			(entries) => {
-				entries.forEach((entry) => {
-					sectionVisibility[entry.target.id] = entry.isIntersecting;
-				});
-
-				if (Date.now() < suppressObserverUntil) {
-					return;
-				}
-
-				const current = sectionOrder.find((id) => sectionVisibility[id]);
-				if (!current || current === activeSection) {
-					return;
-				}
-
-				activeSection = current;
-
-				if (current !== 'feedback') {
-					const targetPath = pathForSection(current);
-					if (window.location.pathname !== targetPath) {
-						window.history.replaceState({}, '', targetPath);
-					}
-				}
-			},
-			{
-				root: scrollContainer,
-				rootMargin: `-${NAVBAR_OFFSET + 8}px 0px -70% 0px`,
-				threshold: 0
-			}
-		);
-
-		sectionOrder.forEach((id) => {
-			const el = document.getElementById(id);
-			if (el) sectionObserver.observe(el);
-		});
-
 		return () => {
 			window.removeEventListener('popstate', handlePopState);
-			sectionObserver?.disconnect();
 		};
 	});
 
@@ -195,22 +130,17 @@
 		<div class="w-full h-16 px-4 sm:px-8 lg:px-12">
 			<div class="max-w-7xl mx-auto h-full flex items-center justify-between">
 				<button on:click={() => scrollToSection('home')} class="flex items-center gap-2 group cursor-pointer bg-none border-none p-0">
-					<img src="/static/favicon.png" alt="COPAI Logo" class="w-10 h-10  transform group-hover:scale-110 transition-transform duration-200" />
+					<img src="/static/favicon.png" alt="COPAI Logo" class="w-10 h-10 rounded-lg shadow-md ring-2 ring-orange-100 dark:ring-orange-800/50 transform group-hover:scale-110 transition-transform duration-200" />
 					<span class="font-sans font-bold text-lg text-gray-900 dark:text-white group-hover:text-orange-500 transition">COPAI</span>
 				</button>
 				<div class="hidden md:flex items-center gap-1 rounded-full border border-orange-100 dark:border-gray-700 bg-white/80 dark:bg-gray-900 px-2 py-1 shadow-sm">
 					<button on:click={() => scrollToSection('home')} class="px-4 py-1.5 rounded-full text-sm font-semibold transition bg-none border-none cursor-pointer {activeSection === 'home' ? 'bg-orange-100 dark:bg-gray-800 text-orange-500' : 'text-gray-700 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-gray-800 hover:text-orange-500'}">Home</button>
 					<button on:click={() => scrollToSection('about')} class="px-4 py-1.5 rounded-full text-sm font-semibold transition bg-none border-none cursor-pointer {activeSection === 'about' ? 'bg-orange-100 dark:bg-gray-800 text-orange-500' : 'text-gray-700 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-gray-800 hover:text-orange-500'}">About</button>
 					<button on:click={() => scrollToSection('community')} class="px-4 py-1.5 rounded-full text-sm font-semibold transition bg-none border-none cursor-pointer {activeSection === 'community' ? 'bg-orange-100 dark:bg-gray-800 text-orange-500' : 'text-gray-700 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-gray-800 hover:text-orange-500'}">Community</button>
-					<button on:click={() => scrollToSection('feedback')} class="px-4 py-1.5 rounded-full text-sm font-semibold transition border-none cursor-pointer text-gray-700 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-gray-800 hover:text-orange-500 bg-transparent">Feedback</button>
 				</div>
 				<div class="flex items-center gap-2 sm:gap-4">
-					{#if $user}
-						<a href="/" class="text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-semibold transition shadow-md hover:shadow-lg transform hover:scale-105">Go to chat</a>
-					{:else}
-						<a href="/auth" class="text-sm px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition font-medium">Sign in</a>
-						<a href="/register" class="text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-semibold transition shadow-md hover:shadow-lg transform hover:scale-105">Get started</a>
-					{/if}
+					<a href="/auth" class="text-sm px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition font-medium">Sign in</a>
+					<a href="/register" class="text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-semibold transition shadow-md hover:shadow-lg transform hover:scale-105">Get started</a>
 				</div>
 			</div>
 		</div>
@@ -247,16 +177,6 @@
 									<div class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-medium">{item.description}</div>
 								</div>
 							{/each}
-						</div>
-
-						<!-- Feedback CTA under Community -->
-						<div class="mt-8 flex justify-center">
-							<button on:click={() => scrollToSection('feedback')} class="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold shadow-lg hover:from-orange-600 hover:to-orange-700 transition">
-								<span class="text-sm">Share feedback</span>
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-									<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11v3h3a1 1 0 110 2h-4a1 1 0 01-1-1V7a1 1 0 112 0z" clip-rule="evenodd" />
-								</svg>
-							</button>
 						</div>
 					</div>
 
@@ -461,57 +381,14 @@
 		</div>
 	</section>
 
-		<section id="feedback" class="w-full px-4 sm:px-8 lg:px-12 py-16 sm:py-24 bg-white dark:bg-gray-900">
-			<div class="max-w-7xl mx-auto">
-				<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
-					<div>
-						<div class="inline-flex items-center gap-2 mb-4">
-							<span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-							<span class="text-xs font-bold tracking-[0.18em] uppercase text-orange-500 dark:text-orange-400">feedback</span>
-						</div>
-						<h2 class="text-4xl sm:text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
-							Share your <span class="text-orange-500">feedback</span> 
-						</h2>
-						<p class="mt-3 text-base text-gray-500 dark:text-gray-400 max-w-md">
-							Send a quick note about what is working, what is missing, or what should be improved.
-						</p>
-					</div>
-				</div>
-
-				<div class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] items-center">
-					<div class="space-y-6">
-						<p class="text-lg text-gray-700 dark:text-gray-300 leading-relaxed max-w-xl">
-							Use this form to share ideas for the COPAI community. The feedback goes into the existing feedback system, so nothing is lost.
-						</p>
-						<div class="grid gap-4 sm:grid-cols-3">
-							<div class="rounded-2xl border border-orange-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow-sm">
-								<div class="text-xs font-bold uppercase tracking-widest text-orange-500 dark:text-orange-400">Fast</div>
-								<div class="mt-2 text-sm text-gray-600 dark:text-gray-300">One form, one click.</div>
-							</div>
-							<div class="rounded-2xl border border-orange-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow-sm">
-								<div class="text-xs font-bold uppercase tracking-widest text-orange-500 dark:text-orange-400">Private</div>
-								<div class="mt-2 text-sm text-gray-600 dark:text-gray-300">Only signed-in users can submit.</div>
-							</div>
-							<div class="rounded-2xl border border-orange-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow-sm">
-								<div class="text-xs font-bold uppercase tracking-widest text-orange-500 dark:text-orange-400">Actionable</div>
-								<div class="mt-2 text-sm text-gray-600 dark:text-gray-300">We keep it in the existing feedback system.</div>
-							</div>
-						</div>
-					</div>
-
-					<FeedbackForm />
-				</div>
-			</div>
-		</section>
-
 	<!-- Footer -->
 	<footer class="w-full px-4 sm:px-8 lg:px-12 py-8 border-t border-orange-100 dark:border-orange-800 text-sm text-gray-600 dark:text-gray-400">
 		<div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
 			<div class="font-semibold">© {new Date().getFullYear()} COPAI</div>
-			<!-- <div class="flex items-center gap-6">
+			<div class="flex items-center gap-6">
 				<a href="/auth" class="hover:text-orange-600 dark:hover:text-orange-400 transition font-medium">Sign in</a>
 				<a href="/auth" class="hover:text-orange-600 dark:hover:text-orange-400 transition font-medium">Register</a>
-			</div> -->
+			</div>
 		</div>
 	</footer>
 

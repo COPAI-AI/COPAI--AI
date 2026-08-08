@@ -1271,6 +1271,7 @@
 			if (fallbackModelId) {
 				selectedModels = [fallbackModelId];
 			} else {
+				selectedModels = [''];
 				toast.error($i18n.t('Model not selected'));
 				return;
 			}
@@ -2119,9 +2120,12 @@
 
 						<!-- Fixed Input Container at Bottom -->
 						 <!-- border-t border-gray-200 dark:border-gray-800 -->
-						<div class="sticky bottom-0 left-0 right-0 z-20 bg-white dark:bg-gray-900 ">
+						<div
+							class="sticky bottom-0 left-0 right-0 z-20 bg-white dark:bg-gray-900 "
+							style="padding-bottom: env(safe-area-inset-bottom, 0px);"
+						>
 
-							<div class="max-w-6xl mx-auto px-4 py-3">
+							<div class="max-w-6xl mx-auto px-2 sm:px-4 py-2 sm:py-3">
 								<MessageInput
 									{history}
 									{taskIds}

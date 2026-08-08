@@ -10,6 +10,7 @@
 	import ActionsSelector from '$lib/components/workspace/Models/ActionsSelector.svelte';
 	import Capabilities from '$lib/components/workspace/Models/Capabilities.svelte';
 	import Textarea from '$lib/components/common/Textarea.svelte';
+	import Selector from '$lib/components/common/Selector.svelte';
 	import { getTools } from '$lib/apis/tools';
 	import { getFunctions } from '$lib/apis/functions';
 	import { getKnowledgeBases } from '$lib/apis/knowledge';
@@ -104,6 +105,10 @@
 		}
 	};
 
+	$: if (info.base_model_id) {
+		addUsage(info.base_model_id);
+	}
+
 	const submitHandler = async () => {
 		loading = true;
 
@@ -116,6 +121,12 @@
 
 		if (name === '') {
 			toast.error('Model Name is required.');
+		}
+
+		if (preset && !info.base_model_id) {
+			toast.error($i18n.t('Base Model (From) is required.'));
+			loading = false;
+			return;
 		}
 
 		info.access_control = accessControl;
@@ -448,19 +459,20 @@
 								<label class="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 sm:mb-2 uppercase tracking-wide">
 									{$i18n.t('Base Model (From)')}
 								</label>
-								<select
-									class="w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all cursor-pointer"
+								<div
+									class="w-full px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm bg-gray-50 dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 rounded-lg sm:rounded-xl focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 outline-none transition-all"
+								>
+									<Selector
+										placeholder={$i18n.t('Select a base model')}
+										searchPlaceholder={$i18n.t('Search a model')}
+										items={$models
+											.filter(
+												(m) => (model ? m.id !== model.id : true) && !m?.preset && m?.owned_by !== 'arena'
+											)
+											.map((m) => ({ value: m.id, label: m.name }))}
 										bind:value={info.base_model_id}
-										on:change={(e) => {
-											addUsage(e.target.value);
-										}}
-										required
-									>
-										<option value={null}>{$i18n.t('Select a base model')}</option>
-										{#each $models.filter((m) => (model ? m.id !== model.id : true) && !m?.preset && m?.owned_by !== 'arena') as model}
-											<option value={model.id}>{model.name}</option>
-										{/each}
-									</select>
+									/>
+								</div>
 								</div>
 							{/if}
 

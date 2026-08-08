@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import { onMount } from 'svelte';
-	import { user } from '$lib/stores';
 	import FeedbackForm from '$lib/components/feedback/FeedbackForm.svelte';
 
-	const initialSection: 'home' | 'about' | 'community' | 'feedback' = 'home';
+	const initialSection: 'home' | 'about' | 'community' | 'feedback' = 'about';
 	const NAVBAR_OFFSET = 80;
 
 	let scrollY = 0;
@@ -142,7 +141,7 @@
 	});
 
 	const allMembers = [
-		
+
 		{ name: 'H.E Hul Seingheng', image: '/assets/images/Hul_Seingheng.jpg' },
 		{ name: 'Dr. Chen Sovann', image: '/assets/images/Chen_Sovann.jpg' },
 		{ name: 'Mr. Rafael Torquato Cruz', image: '/assets/images/Rafael_Torquato_Cruz.jpg' },
@@ -195,7 +194,7 @@
 		<div class="w-full h-16 px-4 sm:px-8 lg:px-12">
 			<div class="max-w-7xl mx-auto h-full flex items-center justify-between">
 				<button on:click={() => scrollToSection('home')} class="flex items-center gap-2 group cursor-pointer bg-none border-none p-0">
-					<img src="/static/favicon.png" alt="COPAI Logo" class="w-10 h-10  transform group-hover:scale-110 transition-transform duration-200" />
+					<img src="/static/favicon.png" alt="COPAI Logo" class="w-10 h-10 rounded-lg shadow-md ring-2 ring-orange-100 dark:ring-orange-800/50 transform group-hover:scale-110 transition-transform duration-200" />
 					<span class="font-sans font-bold text-lg text-gray-900 dark:text-white group-hover:text-orange-500 transition">COPAI</span>
 				</button>
 				<div class="hidden md:flex items-center gap-1 rounded-full border border-orange-100 dark:border-gray-700 bg-white/80 dark:bg-gray-900 px-2 py-1 shadow-sm">
@@ -205,12 +204,8 @@
 					<button on:click={() => scrollToSection('feedback')} class="px-4 py-1.5 rounded-full text-sm font-semibold transition border-none cursor-pointer text-gray-700 dark:text-gray-300 hover:bg-orange-100 dark:hover:bg-gray-800 hover:text-orange-500 bg-transparent">Feedback</button>
 				</div>
 				<div class="flex items-center gap-2 sm:gap-4">
-					{#if $user}
-						<a href="/" class="text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-semibold transition shadow-md hover:shadow-lg transform hover:scale-105">Go to chat</a>
-					{:else}
-						<a href="/auth" class="text-sm px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition font-medium">Sign in</a>
-						<a href="/register" class="text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-semibold transition shadow-md hover:shadow-lg transform hover:scale-105">Get started</a>
-					{/if}
+					<a href="/auth" class="text-sm px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition font-medium">Sign in</a>
+					<a href="/register" class="text-sm px-4 py-2 rounded-lg bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-semibold transition shadow-md hover:shadow-lg transform hover:scale-105">Get started</a>
 				</div>
 			</div>
 		</div>
@@ -236,7 +231,7 @@
 							COPAI connects researchers, policymakers, innovators, and students to accelerate AI capacity, policy readiness, and inclusive innovation in Cambodia.
 						</p>
 						<div class="flex flex-col sm:flex-row gap-4 pt-4">
-							
+
 							<button on:click={() => scrollToSection('about')} class="px-8 py-3.5 rounded-lg border-2 border-orange-300 bg-white dark:bg-gray-900 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-gray-800 font-bold transition bg-none cursor-pointer">Explore COPAI</button>
 						</div>
 						<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6">
@@ -325,7 +320,7 @@
 						<div class="text-4xl font-bold mb-2">35</div>
 						<p class="text-orange-100">Members</p>
 					</div>
-					
+
 				</div>
 			</div>
 
@@ -413,14 +408,6 @@
 						Researchers, innovators, and practitioners united for AI in Cambodia.
 					</p>
 				</div>
-				<!-- <div class="flex items-center gap-3 shrink-0">
-					<span class="px-4 py-2 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 shadow-sm">
-						{allMembers.length} members
-					</span>
-					<a href="/register" class="px-5 py-2 rounded-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5">
-						Join us →
-					</a>
-				</div> -->
 			</div>
 
 			<!-- Members Grid — 6 columns, image + name only -->
@@ -456,8 +443,6 @@
 				{/each}
 			</div>
 
-			
-
 		</div>
 	</section>
 
@@ -470,7 +455,7 @@
 							<span class="text-xs font-bold tracking-[0.18em] uppercase text-orange-500 dark:text-orange-400">feedback</span>
 						</div>
 						<h2 class="text-4xl sm:text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
-							Share your <span class="text-orange-500">feedback</span> 
+							Share your <span class="text-orange-500">feedback</span>
 						</h2>
 						<p class="mt-3 text-base text-gray-500 dark:text-gray-400 max-w-md">
 							Send a quick note about what is working, what is missing, or what should be improved.
@@ -508,10 +493,10 @@
 	<footer class="w-full px-4 sm:px-8 lg:px-12 py-8 border-t border-orange-100 dark:border-orange-800 text-sm text-gray-600 dark:text-gray-400">
 		<div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
 			<div class="font-semibold">© {new Date().getFullYear()} COPAI</div>
-			<!-- <div class="flex items-center gap-6">
+			<div class="flex items-center gap-6">
 				<a href="/auth" class="hover:text-orange-600 dark:hover:text-orange-400 transition font-medium">Sign in</a>
 				<a href="/auth" class="hover:text-orange-600 dark:hover:text-orange-400 transition font-medium">Register</a>
-			</div> -->
+			</div>
 		</div>
 	</footer>
 

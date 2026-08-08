@@ -34,5 +34,8 @@
 		on:select={(e) => {
 			dispatch('select', e.detail);
 		}}
+		on:createChat={(e) => {
+			dispatch('createChat', e.detail);
+		}}
 	/>
 {/each}
