@@ -93,7 +93,9 @@ services:
     environment:
       # LLM — vLLM via OpenAI-compatible API
       - OPENAI_API_BASE_URL=http://127.0.0.1:8010/v1
+      - OPENAI_API_BASE_URLS=http://127.0.0.1:8010/v1
       - OPENAI_API_KEY=not-required
+      - OPENAI_API_KEYS=not-required
       - OLLAMA_BASE_URL=
 
       # Auth
